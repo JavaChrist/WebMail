@@ -9,6 +9,15 @@
     <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="reception.css">
+    <!-- Ajouter dans la section head de chaque page HTML protégée -->
+<script type="module">
+    import { protectRoute } from './js/auth-guard.js';
+    
+    // Protéger la route
+    protectRoute().catch(error => {
+        console.error('Erreur d\'authentification:', error);
+    });
+</script>
 </head>
 
 <body>

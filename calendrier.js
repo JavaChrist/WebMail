@@ -9,15 +9,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // Au début du fichier, ajoutons une variable pour stocker les rendez-vous
     let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
 
+    // Définir les couleurs de visibilité globalement
+    const visibilityColors = {
+        default: '#81B2B7',  // Bleu-vert existant
+        private: '#FF7F7F',  // Rouge pastel
+        pro: '#90EE90'       // Vert pastel
+    };
+
+    // Définir les couleurs des rubriques globalement
+    const categoryColors = {
+        rendezvous: '#4B0082',    // Indigo
+        task: '#FF8C00',          // Orange foncé
+        validatedTask: '#228B22',  // Vert forêt
+        misc: '#8B4513'           // Marron
+    };
+
     // Fonction pour sauvegarder les rendez-vous dans le localStorage
     function saveAppointments() {
         localStorage.setItem('appointments', JSON.stringify(appointments));
     }
 
+    // Fonction pour formater une date en YYYY-MM-DD sans décalage horaire
+    function formatDate(date) {
+        const d = new Date(date);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    }
+
+    // Fonction pour obtenir le libellé de la rubrique
+    function getCategoryLabel(categoryValue) {
+        const categories = {
+            'rendezvous': 'Rendez-vous',
+            'task': 'Tâche à réaliser',
+            'validatedTask': 'Tâche validée',
+            'misc': 'Divers'
+        };
+        return categories[categoryValue] || categoryValue;
+    }
+
     // Fonction pour charger et afficher les rendez-vous existants
     function loadAppointments() {
         const appointmentList = document.getElementById('appointmentList');
-        appointmentList.innerHTML = ''; // Nettoie la liste
+        appointmentList.innerHTML = '';
 
         // Trier les rendez-vous par date et heure
         appointments.sort((a, b) => {
@@ -28,14 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Afficher dans la liste des rendez-vous
         appointments.forEach((appointment, index) => {
-            // Formatage de la date
             const [year, month, day] = appointment.date.split('-');
             const formattedDate = `${day}/${month}/${year}`;
-
+            const categoryLabel = getCategoryLabel(appointment.category);
+            
             const appointmentItem = document.createElement('li');
-            appointmentItem.className = 'appointment-item';
+            appointmentItem.className = `appointment-item visibility-${appointment.visibility}`;
             appointmentItem.innerHTML = `
-                <span class="appointment-text">${appointment.title} - ${formattedDate} ${appointment.time} (${appointment.category})</span>
+                <span class="appointment-text" style="
+                    border-left: 4px solid ${visibilityColors[appointment.visibility] || visibilityColors.default}; 
+                    padding-left: 10px;
+                    color: ${categoryColors[appointment.category] || '#000'};
+                    font-weight: 500;
+                ">
+                    ${appointment.title} - ${formattedDate} ${appointment.time} (${categoryLabel})
+                </span>
                 <button class="delete-button" data-index="${index}">
                     <i class="bx bx-trash"></i>
                 </button>
@@ -44,83 +84,83 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Afficher dans la vue jour
-        const daySlots = document.querySelectorAll('.appointment-slot');
-        daySlots.forEach(slot => {
-            slot.textContent = '';
-            slot.style.backgroundColor = '';
-            slot.style.color = '';
-        });
+        if (document.querySelector('.day-view')) {
+            const selectedDateStr = formatDate(currentDate);
+            const dayAppointments = appointments.filter(app => app.date === selectedDateStr);
 
-        // Utiliser la date sélectionnée pour la vue jour
-        const selectedDateStr = currentDate.toISOString().split('T')[0];
-        const dayAppointments = appointments.filter(app => app.date === selectedDateStr);
+            const daySlots = document.querySelectorAll('.appointment-slot');
+            daySlots.forEach(slot => {
+                slot.textContent = '';
+                slot.style.backgroundColor = '';
+                slot.style.color = '';
 
-        dayAppointments.forEach(appointment => {
-            const [hour] = appointment.time.split(':');
-            const targetSlot = document.querySelector(`.appointment-slot[data-hour="${hour}"]`);
-            if (targetSlot) {
-                targetSlot.textContent = `${appointment.title} (${appointment.time})`;
-                targetSlot.style.backgroundColor = '#81B2B7';
-                targetSlot.style.color = '#fff';
-            }
-        });
+                const slotHour = slot.dataset.hour;
+                const appointment = dayAppointments.find(app =>
+                    parseInt(app.time.split(':')[0]) === parseInt(slotHour)
+                );
+
+                if (appointment) {
+                    slot.textContent = `${appointment.title} (${appointment.time})`;
+                    slot.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
+                    slot.style.color = categoryColors[appointment.category] || '#fff';
+                    slot.style.fontWeight = '500';
+                }
+            });
+        }
 
         // Afficher dans la vue semaine
-        const weekSlots = document.querySelectorAll('.week-grid .appointment-slot');
-        weekSlots.forEach(slot => {
-            slot.textContent = '';
-            slot.style.backgroundColor = '';
-            slot.style.color = '';
+        if (document.querySelector('.week-view')) {
+            const weekSlots = document.querySelectorAll('.week-grid .appointment-slot');
+            weekSlots.forEach(slot => {
+                slot.textContent = '';
+                slot.style.backgroundColor = '';
+                slot.style.color = '';
 
-            const day = parseInt(slot.dataset.day);
-            const hour = parseInt(slot.dataset.hour);
+                const slotDate = slot.dataset.date;
+                const slotHour = parseInt(slot.dataset.hour);
 
-            // Calculer la date pour ce slot
-            const slotDate = new Date(currentDate);
-            slotDate.setDate(slotDate.getDate() - slotDate.getDay() + day);
-            const slotDateStr = slotDate.toISOString().split('T')[0];
+                const appointment = appointments.find(app =>
+                    app.date === slotDate &&
+                    parseInt(app.time.split(':')[0]) === slotHour
+                );
 
-            const appointment = appointments.find(app =>
-                app.date === slotDateStr &&
-                parseInt(app.time.split(':')[0]) === hour
-            );
-
-            if (appointment) {
-                slot.textContent = `${appointment.title} (${appointment.time})`;
-                slot.style.backgroundColor = '#81B2B7';
-                slot.style.color = '#fff';
-            }
-        });
+                if (appointment) {
+                    slot.textContent = `${appointment.title} (${appointment.time})`;
+                    slot.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
+                    slot.style.color = categoryColors[appointment.category] || '#fff';
+                    slot.style.fontWeight = '500';
+                }
+            });
+        }
 
         // Afficher dans la vue mois
-        const monthCells = document.querySelectorAll('.month-cell');
-        monthCells.forEach(cell => {
-            const cellDate = new Date(cell.dataset.date);
-            // S'assurer que la date est au format YYYY-MM-DD
-            const cellDateStr = cellDate.toISOString().split('T')[0];
+        if (document.querySelector('.month-view')) {
+            const monthCells = document.querySelectorAll('.month-cell');
+            monthCells.forEach(cell => {
+                const cellDate = cell.dataset.date;
+                const appointmentsContainer = cell.querySelector('.day-appointments');
+                if (appointmentsContainer) {
+                    appointmentsContainer.innerHTML = '';
 
-            const appointmentsContainer = cell.querySelector('.day-appointments');
-            if (appointmentsContainer) {
-                appointmentsContainer.innerHTML = '';
+                    const cellAppointments = appointments.filter(app => app.date === cellDate);
+                    cellAppointments.sort((a, b) => a.time.localeCompare(b.time));
 
-                const cellAppointments = appointments.filter(app => app.date === cellDateStr);
-
-                cellAppointments.sort((a, b) => a.time.localeCompare(b.time));
-
-                cellAppointments.forEach(appointment => {
-                    const appointmentDiv = document.createElement('div');
-                    appointmentDiv.className = 'month-appointment';
-                    appointmentDiv.textContent = `${appointment.time} ${appointment.title}`;
-                    appointmentDiv.style.backgroundColor = '#81B2B7';
-                    appointmentDiv.style.color = '#fff';
-                    appointmentDiv.style.padding = '2px';
-                    appointmentDiv.style.margin = '1px';
-                    appointmentDiv.style.borderRadius = '3px';
-                    appointmentDiv.style.fontSize = '0.8em';
-                    appointmentsContainer.appendChild(appointmentDiv);
-                });
-            }
-        });
+                    cellAppointments.forEach(appointment => {
+                        const appointmentDiv = document.createElement('div');
+                        appointmentDiv.className = 'month-appointment';
+                        appointmentDiv.textContent = `${appointment.time} ${appointment.title}`;
+                        appointmentDiv.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
+                        appointmentDiv.style.color = categoryColors[appointment.category] || '#fff';
+                        appointmentDiv.style.fontWeight = '500';
+                        appointmentDiv.style.padding = '2px';
+                        appointmentDiv.style.margin = '1px';
+                        appointmentDiv.style.borderRadius = '3px';
+                        appointmentDiv.style.fontSize = '0.8em';
+                        appointmentsContainer.appendChild(appointmentDiv);
+                    });
+                }
+            });
+        }
 
         // Ajouter les gestionnaires d'événements pour la suppression
         document.querySelectorAll('.delete-button').forEach(button => {
@@ -176,7 +216,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fonction pour la vue Semaine
     function renderWeekView(date) {
         const startOfWeek = new Date(date);
-        startOfWeek.setDate(date.getDate() - date.getDay() + 1);
+        // Ajuster au lundi (1 = Lundi, 0 = Dimanche)
+        const currentDay = startOfWeek.getDay();
+        const diff = currentDay === 0 ? -6 : 1 - currentDay;
+        startOfWeek.setDate(startOfWeek.getDate() + diff);
 
         let weekViewContent = '<div class="date-navigation">';
         weekViewContent += '<button id="prevWeek">&larr;</button>';
@@ -185,13 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
         weekViewContent += '</div>';
 
         weekViewContent += '<div class="week-view">';
-
-        // Conteneur principal pour les jours
         weekViewContent += '<div class="days-container">';
-
-        // En-tête des jours avec espace vide pour aligner avec la colonne des heures
         weekViewContent += '<div class="week-header">';
-        weekViewContent += '<div class="header-spacer"></div>'; // Espace pour aligner avec la colonne des heures
+        weekViewContent += '<div class="header-spacer"></div>';
+
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
         days.forEach((day, index) => {
             const currentDay = new Date(startOfWeek);
@@ -205,55 +245,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         weekViewContent += '</div>';
 
-        // Conteneur pour la grille horaire
         weekViewContent += '<div class="time-grid-container">';
-
-        // Colonne des heures (à gauche)
         weekViewContent += '<div class="time-column">';
         for (let hour = 0; hour < 24; hour++) {
             weekViewContent += `<div class="hour-cell">${hour}:00</div>`;
         }
         weekViewContent += '</div>';
 
-        // Grille des jours
         weekViewContent += '<div class="week-grid">';
         for (let day = 0; day < 7; day++) {
             const currentDay = new Date(startOfWeek);
             currentDay.setDate(startOfWeek.getDate() + day);
             const isCurrentDay = currentDay.toDateString() === new Date().toDateString();
-            weekViewContent += `<div class="day-column ${isCurrentDay ? 'current-day' : ''}">`;
+            const formattedDate = formatDate(currentDay);
+
+            weekViewContent += `<div class="day-column ${isCurrentDay ? 'current-day' : ''}" data-date="${formattedDate}">`;
             for (let hour = 0; hour < 24; hour++) {
-                weekViewContent += `<div class="appointment-slot" data-hour="${hour}" data-day="${day}"></div>`;
+                weekViewContent += `<div class="appointment-slot" data-hour="${hour}" data-date="${formattedDate}"></div>`;
             }
             weekViewContent += '</div>';
         }
         weekViewContent += '</div>';
-
-        weekViewContent += '</div>'; // Fin time-grid-container
-        weekViewContent += '</div>'; // Fin days-container
-        weekViewContent += '</div>'; // Fin week-view
+        weekViewContent += '</div>';
+        weekViewContent += '</div>';
+        weekViewContent += '</div>';
 
         calendarView.innerHTML = weekViewContent;
 
-        // Gestionnaires d'événements pour la vue semaine
-        document.querySelectorAll('.appointment-slot').forEach(slot => {
-            slot.addEventListener('click', () => {
-                appointmentModal.style.display = 'block';
-            });
+        // Mise à jour de loadAppointments pour la vue semaine
+        const weekSlots = document.querySelectorAll('.week-grid .appointment-slot');
+        weekSlots.forEach(slot => {
+            const slotDate = slot.dataset.date;
+            const hour = parseInt(slot.dataset.hour);
+
+            const appointment = appointments.find(app =>
+                app.date === slotDate &&
+                parseInt(app.time.split(':')[0]) === hour
+            );
+
+            if (appointment) {
+                slot.textContent = `${appointment.title} (${appointment.time})`;
+                slot.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
+                slot.style.color = categoryColors[appointment.category] || '#fff';
+                slot.style.fontWeight = '500';
+            }
         });
 
+        // Gestionnaires d'événements pour la vue semaine
         document.getElementById('prevWeek').addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() - 7);
             renderWeekView(currentDate);
-            loadAppointments(); // S'assurer que les rendez-vous sont chargés
-            setupDateClickHandlers();
+            loadAppointments();
         });
 
         document.getElementById('nextWeek').addEventListener('click', () => {
             currentDate.setDate(currentDate.getDate() + 7);
             renderWeekView(currentDate);
-            loadAppointments(); // S'assurer que les rendez-vous sont chargés
-            setupDateClickHandlers();
+            loadAppointments();
         });
 
         setupDateClickHandlers();
@@ -298,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const cellDate = new Date(date_iter);
             monthViewContent += `
-                <div class="${classes}" data-date="${cellDate.toISOString().split('T')[0]}">
+                <div class="${classes}" data-date="${formatDate(cellDate)}">
                     <div class="day-number">${date_iter.getDate()}</div>
                     <div class="day-appointments"></div>
                 </div>`;
@@ -435,19 +483,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const repeatedAppointments = [];
         const startDate = new Date(baseAppointment.date);
         const endDate = new Date(baseAppointment.repeatEnd);
+        const targetDay = startDate.getDate(); // Jour du mois initial
 
         let currentDate = new Date(startDate);
 
         while (currentDate <= endDate) {
-            // Créer une copie du rendez-vous de base
-            const appointment = {
-                ...baseAppointment,
-                date: currentDate.toISOString().split('T')[0],
-                isRepeated: true,
-                originalDate: baseAppointment.date
-            };
+            // Vérifier si le jour cible existe dans le mois actuel
+            const lastDayOfMonth = getLastDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
 
-            repeatedAppointments.push(appointment);
+            // Ne créer le rendez-vous que si le jour existe dans ce mois
+            if (targetDay <= lastDayOfMonth) {
+                // S'assurer que la date est bien sur le jour cible
+                currentDate.setDate(targetDay);
+
+                // Créer une copie du rendez-vous de base
+                const appointment = {
+                    ...baseAppointment,
+                    date: formatDate(currentDate),
+                    isRepeated: true,
+                    originalDate: baseAppointment.date
+                };
+
+                repeatedAppointments.push(appointment);
+            }
 
             // Calculer la prochaine date selon le type de répétition
             switch (baseAppointment.repeat) {
@@ -461,21 +519,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentDate.setDate(currentDate.getDate() + 14);
                     break;
                 case 'monthly':
-                    const currentDay = currentDate.getDate();
-                    currentDate.setMonth(currentDate.getMonth() + 1);
-                    // Gérer le cas des fins de mois
-                    if (currentDate.getDate() !== currentDay) {
-                        currentDate.setDate(0); // Dernier jour du mois précédent
-                    }
+                    // Passer au premier jour du mois suivant
+                    currentDate.setMonth(currentDate.getMonth() + 1, 1);
                     break;
                 case 'yearly':
                     currentDate.setFullYear(currentDate.getFullYear() + 1);
                     break;
             }
-            currentDate = new Date(currentDate); // Créer une nouvelle instance de date
+
+            // Créer une nouvelle instance de date pour éviter les références
+            currentDate = new Date(currentDate);
         }
 
         return repeatedAppointments;
+    }
+
+    // Fonction auxiliaire pour obtenir le dernier jour du mois
+    function getLastDayOfMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
     }
 
     // Modifier le gestionnaire du formulaire
@@ -489,6 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reminder = document.getElementById('reminder').value;
         const repeat = document.getElementById('repeat').value;
         const repeatEnd = document.getElementById('repeatEnd').value;
+        const visibility = document.getElementById('visibility').value;
 
         // Vérifier que la date de fin est postérieure à la date de début
         if (repeat && repeatEnd && new Date(repeatEnd) < new Date(date)) {
@@ -504,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reminder,
             repeat,
             repeatEnd,
+            visibility,
             reminderShown: false
         };
 

@@ -62,6 +62,67 @@ function showAlert(message, type = 'success') {
     }, 3000);
 }
 
+// Fonction pour vérifier si l'utilisateur est connecté
+function checkAuth() {
+    auth.onAuthStateChanged(user => {
+        if (!user && !window.location.pathname.includes('login.html')) {
+            // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+            window.location.href = 'login.html';
+        }
+    });
+}
+
+// Fonction pour gérer la déconnexion
+function handleLogout() {
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    }).catch((error) => {
+        console.error('Erreur lors de la déconnexion:', error);
+    });
+}
+
+// Fonction pour détecter l'inactivité
+function setupInactivityDetection() {
+    let inactivityTimeout;
+    const TIMEOUT_DURATION = 30 * 60 * 1000; // 30 minutes en millisecondes
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimeout);
+        inactivityTimeout = setTimeout(() => {
+            handleLogout();
+        }, TIMEOUT_DURATION);
+    }
+
+    // Événements à surveiller pour réinitialiser le timer
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, true);
+    });
+
+    // Initialiser le timer
+    resetInactivityTimer();
+}
+
+// Fonction pour gérer la fermeture de la fenêtre/onglet
+function setupWindowCloseHandler() {
+    window.addEventListener('beforeunload', () => {
+        // Stocker l'heure de fermeture
+        localStorage.setItem('lastSessionTime', new Date().getTime());
+    });
+}
+
+// Fonction pour vérifier la session au chargement
+function checkSession() {
+    const lastSessionTime = localStorage.getItem('lastSessionTime');
+    const currentTime = new Date().getTime();
+    const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes en millisecondes
+
+    if (lastSessionTime && (currentTime - lastSessionTime) > SESSION_TIMEOUT) {
+        // Session expirée, déconnecter l'utilisateur
+        handleLogout();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     showHiddenPass('login-pass', 'login-eye')
     showHiddenPass('register-pass', 'register-eye')
@@ -216,5 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(errorMessage, 'error');
             }
         });
+    }
+
+    if (!window.location.pathname.includes('login.html')) {
+        checkAuth();
+        setupInactivityDetection();
+        setupWindowCloseHandler();
+        checkSession();
     }
 });

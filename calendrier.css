@@ -280,37 +280,55 @@ h2 {
 
 .date-navigation {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  width: 500px;
-  margin: 0 auto;
+  margin-bottom: 20px;
   padding: 10px;
 }
 
 .date-navigation h2 {
-  width: 400px;
-  text-align: center;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.date-navigation button {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.date-navigation button i {
-  font-size: 24px;
   color: var(--text-color);
+}
+
+/* Style des boutons de navigation */
+#prevDay,
+#nextDay,
+#prevWeek,
+#nextWeek,
+#prevMonth,
+#nextMonth {
+  background-color: #81b2b7;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+/* Style au survol */
+#prevDay:hover,
+#nextDay:hover,
+#prevWeek:hover,
+#nextWeek:hover,
+#prevMonth:hover,
+#nextMonth:hover {
+  background-color: #5c8a8f; /* Version plus foncée de la couleur principale */
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Style au clic */
+#prevDay:active,
+#nextDay:active,
+#prevWeek:active,
+#nextWeek:active,
+#prevMonth:active,
+#nextMonth:active {
+  transform: scale(0.95);
+  box-shadow: none;
 }
 
 .week-title {
@@ -1188,4 +1206,40 @@ label[for="repeatEnd"] {
   width: 100%;
   max-width: 1350px;
   margin: 0 auto 15px auto;
+}
+
+/* Styles pour le sélecteur de visibilité */
+#visibility {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--container-color);
+  color: var(--text-color);
+}
+
+/* Styles pour les différentes visibilités dans la liste */
+.appointment-item.visibility-default {
+  border-left-color: #81b2b7;
+}
+
+.appointment-item.visibility-private {
+  border-left-color: #ff7f7f;
+}
+
+.appointment-item.visibility-pro {
+  border-left-color: #90ee90;
+}
+
+/* Effet de survol sur le sélecteur */
+#visibility:hover {
+  border-color: var(--first-color);
+}
+
+/* Style au focus */
+#visibility:focus {
+  outline: none;
+  border-color: var(--first-color);
+  box-shadow: 0 0 0 2px rgba(129, 178, 183, 0.2);
 }

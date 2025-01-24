@@ -9,6 +9,15 @@
     <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="calendrier.css">
+    <!-- Ajouter dans la section head de chaque page HTML protégée -->
+<script type="module">
+    import { protectRoute } from './js/auth-guard.js';
+    
+    // Protéger la route
+    protectRoute().catch(error => {
+        console.error('Erreur d\'authentification:', error);
+    });
+</script>
 </head>
 
 <body>
@@ -103,6 +112,13 @@
                     <option value="task">Tâche à réaliser</option>
                     <option value="validatedTask">Tâche validée</option>
                     <option value="misc">Divers</option>
+                </select>
+
+                <label for="visibility">Visibilité:</label>
+                <select id="visibility" name="visibility">
+                    <option value="default">Par défaut</option>
+                    <option value="private">Privé</option>
+                    <option value="pro">Professionnel</option>
                 </select>
 
                 <label for="reminder">Rappel:</label>
