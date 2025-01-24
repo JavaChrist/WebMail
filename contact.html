@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Javachrist</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="contact.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="nav-left">
+            <img src="/assets/icone/favicon.ico" alt="Mon logo javachrist" class="logo-javachrist">
+            <ul class="menu-left">
+                <li>
+                    <a href="#"><i class="bx bx-menu icon hamburger-btn"></i></a>
+                    <div class="modal-container">
+                        <div class="modal-overlay">
+                            <div id="myModal" class="modal">
+                                <div class="modal-content">
+                                    <h2>Apps</h2>
+                                    <span class="close"></span>
+                                    <div class="modal-icons">
+                                        <a href="/index.html" class="modal-link home"><i
+                                                class="bx bx-home icon"></i>Menu</a>
+                                        <a href="/reception.html" class="modal-link email"><i
+                                                class="bx bx-envelope icon"></i>Courrier</a>
+                                        <a href="/calendrier.html" class="modal-link calendar"><i
+                                                class="bx bx-calendar icon"></i>Calendrier</a>
+                                        <a href="/contact.html" class="modal-link contact"><i
+                                                class="bx bx-user icon"></i>Carnet d'adresses</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="/index.html"><i class="bx bx-home icon"></i></a></li>
+                <li><a href="/reception.html"><i class="bx bx-envelope icon"></i></a></li>
+                <li><a href="/calendrier.html"><i class="bx bx-calendar icon"></i></a></li>
+                <li><a href="/contact.html"><i class="bx bx-user icon"></i></a></li>
+            </ul>
+        </div>
+        <div class="nav-middle">
+            <input type="text" placeholder="Rechercher..."> <i class="bx bx-search"></i>
+        </div>
+        <div class="nav-right">
+            <ul class="menu-right">
+                <li><a href="#"><i class="bx bx-bell icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-loader icon" id="contacts-loader"></i></a></li>
+                <li><a href="#"><i class="bx bx-cog icon"></i></a></li>
+                <li>
+                    <a href="./login.html" id="loginBtn"><i class="bx bx-log-in icon"></i></a>
+                    <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
+                </li>
+            </ul>
+            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+        </div>
+    </header>
+    <main class="contact-container">
+        <aside class="contact-sidebar">
+            <div class="address-books">
+                <div class="address-books-header">
+                    <h2>Carnets d'adresses</h2>
+                    <button class="new-book-btn">
+                        <i class="bx bx-plus"></i>
+                    </button>
+                </div>
+                <ul class="address-books-list">
+                    <!-- Les carnets seront ajoutés ici dynamiquement -->
+                </ul>
+            </div>
+
+
+            <div class="contacts-toolbar">
+                <div class="toolbar-actions">
+
+                    <div class="new-contact-section">
+                        <button id="newContactBtn" class="new-contact-btn"></i>
+                            New contact
+                        </button>
+                    </div>
+
+                    <button class="action-btn" id="exportContacts">
+                        <i class="bx bx-export"></i>
+                        <span>Exporter</span>
+                    </button>
+                    <button class="action-btn" id="importContacts">
+                        <i class="bx bx-import"></i>
+                        <span>Importer</span>
+                    </button>
+                    <input type="file" id="fileInput" accept=".csv,.json" style="display: none;">
+                </div>
+            </div>
+
+        </aside>
+        
+
+        <section class="contacts-main">
+            <div class="contacts-header">
+                <h1>Tous les contacts</h1>
+                <span class="contacts-count">4 contacts</span>
+            </div>
+
+            <div class="contacts-list">
+                <!-- Les contacts seront ajoutés ici dynamiquement -->
+            </div>
+        </section>
+
+        <section class="contact-details">
+            <div class="contact-profile">
+                <img src="assets/image/defaut-contact.png" alt="Photo de profil" class="profile-photo">
+                <h2 class="contact-name">Grohens, Christian</h2>
+                <p class="contact-title">Développeur web Freelance</p>
+                <div class="contact-actions">
+                    <button class="action-btn" title="Envoyer un email">
+                        <i class="bx bx-envelope"></i>
+                        <span>Courriel</span>
+                    </button>
+                    <button class="action-btn" title="Appeler">
+                        <i class="bx bx-phone"></i>
+                        <span>Appeler</span>
+                    </button>
+                    <button class="action-btn" title="Inviter">
+                        <i class="bx bx-calendar-plus"></i>
+                        <span>Inviter</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <div class="info-group">
+                    <h3>Société</h3>
+                    <p>JavaChrist</p>
+                </div>
+                <div class="info-group">
+                    <h3>Service</h3>
+                    <p>Développeur web Freelance</p>
+                </div>
+                <div class="info-group">
+                    <h3>Adresse électronique 1</h3>
+                    <p>contact@javachrist.fr</p>
+                </div>
+                <div class="info-group">
+                    <h3>Téléphone portable</h3>
+                    <p>0786105807</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal pour nouveau contact -->
+    <div id="newContactModal" class="modal">
+        <!-- Le contenu sera injecté par le JavaScript -->
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <!-- Votre script -->
+    <script type="module" src="contact.js"></script>
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeHeader } from './header.js';
+        initializeHeader();
+    </script>
+    <script src="theme.js"></script>
+</body>
+
+</html>

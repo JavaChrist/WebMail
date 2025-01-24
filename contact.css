@@ -1,0 +1,1127 @@
+/* Layout principal */
+.contact-container {
+  display: grid;
+  grid-template-columns: 250px minmax(300px, 1fr) minmax(400px, 1.5fr);
+  gap: 1px;
+  height: calc(100vh - 90px);
+  background-color: var(--body-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Ajuster le body */
+body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar gauche */
+.contact-sidebar {
+  background-color: var(--container-color);
+  padding: 1rem;
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  width: 280px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.new-contact-btn {
+  margin-bottom: 1.5rem;
+}
+
+.new-contact-btn button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--first-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.new-contact-btn button:hover {
+  background-color: var(--first-color-alt);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.address-books {
+  margin-top: 1rem;
+  border-radius: 4px;
+  background-color: var(--container-color);
+}
+
+.address-books-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.address-books-header h2 {
+  font-size: 1.2rem;
+  color: var(--title-color);
+  margin: 0;
+}
+
+.address-books-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.address-books-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+.address-books-item:last-child {
+  border-bottom: none;
+}
+
+.address-books-item:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.address-books-item.active {
+  background-color: var(--first-color);
+  color: white;
+}
+
+.new-book-btn {
+  background: none;
+  border: none;
+  color: var(--first-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-book-btn:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.new-book-btn i {
+  font-size: 1.2rem;
+}
+
+/* Section principale des contacts */
+.contacts-main {
+  background-color: var(--container-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+/* Header fixe */
+.contacts-header {
+  position: sticky;
+  top: 0;
+  background-color: var(--container-color);
+  z-index: 2;
+  padding: 1.5rem;
+}
+
+.contacts-header h1 {
+  font-size: 1.5rem;
+  color: var(--title-color);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+/* Toolbar fixe */
+.contacts-toolbar {
+  position: sticky;
+  top: 80px;
+  background-color: var(--container-color);
+  z-index: 2;
+  padding: 1rem;
+}
+
+/* Liste des contacts avec défilement */
+.contacts-list {
+  position: absolute;
+  top: 140px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  background-color: var(--container-color);
+}
+
+/* Style des éléments de contact */
+.contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  transition: background-color 0.3s;
+  background-color: var(--container-color);
+}
+
+/* Style de la barre de défilement */
+.contacts-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contacts-list::-webkit-scrollbar-track {
+  background: var(--body-color);
+}
+
+.contacts-list::-webkit-scrollbar-thumb {
+  background: var(--first-color-lighter);
+  border-radius: 3px;
+}
+
+.contacts-list::-webkit-scrollbar-thumb:hover {
+  background: var(--first-color);
+}
+
+/* Assurer que les contacts sont visibles */
+.contact-item:last-child {
+  margin-bottom: 1rem;
+}
+
+.contacts-header h1 {
+  font-size: 1.5rem;
+  color: var(--title-color);
+}
+
+.contacts-count {
+  color: var(--text-color-light);
+}
+
+.alphabet-index {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--body-color);
+}
+
+.alphabet-index span {
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.alphabet-index span:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+}
+
+.contact-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  border-color: var(--first-color);
+}
+
+.action-btn i {
+  font-size: 1.2rem;
+}
+
+/* Section détails du contact */
+.contact-details {
+  background-color: var(--container-color);
+  padding: 2rem;
+  border-left: 1px solid var(--border-color);
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.contact-profile {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  object-fit: cover;
+}
+
+.contact-name {
+  font-size: 1rem;
+  color: var(--title-color);
+  margin-bottom: 0.5rem;
+}
+
+.contact-title {
+  color: var(--text-color-light);
+  margin-bottom: 1.5rem;
+}
+
+.contact-profile .contact-actions {
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.contact-profile .action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contact-info {
+  margin-top: 0.5rem;
+}
+
+.info-group {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+}
+
+.info-group:hover {
+  background-color: var(--body-color);
+  border-color: var(--first-color);
+}
+
+.info-group h3 {
+  font-size: 0.875rem;
+  color: var(--text-color-light);
+  margin-bottom: 0.5rem;
+}
+
+.info-group p {
+  color: var(--text-color);
+}
+
+/* Modal */
+.contact-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.contact-modal.open {
+  display: block;
+}
+
+.contact-modal-content {
+  position: relative;
+  background-color: var(--container-color);
+  margin: 5% auto;
+  padding: 2rem;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-btn {
+  background-color: var(--first-color);
+  color: white;
+  border: none;
+}
+
+.cancel-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+}
+
+/* Responsive */
+@media screen and (max-width: 1200px) {
+  .contact-container {
+    grid-template-columns: 250px 1fr;
+  }
+  .contact-details {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .contact-container {
+    grid-template-columns: 1fr;
+  }
+  .contact-sidebar {
+    display: none;
+  }
+}
+
+.contact-item:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.contact-info h3 {
+  margin: 0;
+  color: var(--title-color);
+}
+
+.contact-info p {
+  margin: 0.25rem 0;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+}
+
+.action-btn i {
+  font-size: 1.2rem;
+}
+
+.contact-item {
+  cursor: pointer;
+}
+
+.contact-item.active {
+  background-color: var(--first-color-lighter);
+  border-left: 4px solid var(--first-color);
+}
+
+.contact-details {
+  padding: 2rem;
+  padding-top: 100px;
+}
+
+.contact-profile {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  object-fit: cover;
+  border: 3px solid var(--first-color-lighter);
+}
+
+.contact-name {
+  font-size: 1.5rem;
+  color: var(--title-color);
+  margin-bottom: 0.5rem;
+}
+
+.contact-title {
+  color: var(--text-color-light);
+  margin-bottom: 1.5rem;
+}
+
+.contact-profile .contact-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.contact-profile .action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.info-group {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+}
+
+.info-group:hover {
+  background-color: var(--body-color);
+  border-color: var(--first-color);
+}
+
+.info-group h3 {
+  font-size: 0.875rem;
+  color: var(--text-color-light);
+  margin-bottom: 0.5rem;
+}
+
+.info-group p {
+  color: var(--text-color);
+}
+
+.photo-upload {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.photo-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--first-color-lighter);
+}
+
+.photo-upload-label {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--first-color);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.photo-upload-label:hover {
+  background-color: var(--first-color-alt);
+  transform: scale(1.1);
+}
+
+.photo-upload-label i {
+  font-size: 1.2rem;
+}
+
+.contact-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.contact-info {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.contact-text {
+  flex: 1;
+}
+
+/* Style pour la photo dans la modal de création/édition */
+.photo-preview img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--first-color);
+  background-color: var(--body-color);
+}
+
+.address-book-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.address-book-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.address-book-selector:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.current-book {
+  font-weight: 500;
+  color: var(--title-color);
+}
+
+.address-book-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+}
+
+.address-book-dropdown.show {
+  display: block;
+}
+
+.book-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.book-item:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.book-item.active {
+  background-color: var(--first-color);
+  color: white;
+}
+
+.new-book-btn {
+  background: none;
+  border: none;
+  color: var(--first-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.new-book-btn:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.new-book-btn i {
+  font-size: 1.2rem;
+}
+
+.address-books-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.address-books-actions {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.delete-book-btn,
+.new-book-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.6rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.delete-book-btn {
+  color: var(--error-color, #dc3545);
+}
+
+.delete-book-btn:hover {
+  background-color: var(--error-color-light, #dc35451a);
+  transform: scale(1.3);
+}
+
+.new-book-btn {
+  color: var(--first-color);
+}
+
+.new-book-btn:hover {
+  background-color: var(--first-color-lighter);
+  transform: scale(1.3);
+}
+
+.delete-book-btn i,
+.new-book-btn i {
+  font-size: 1.5rem;
+}
+
+.address-books-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.address-books-item:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.address-books-item.active {
+  background-color: var(--first-color);
+  color: white;
+}
+
+/* Style pour les éléments survolables */
+.contact-item.searchable:hover {
+  background-color: var(--first-color-lighter);
+  cursor: pointer;
+  transform: translateX(5px);
+  transition: all 0.3s ease;
+}
+
+/* Style pour le message "aucun résultat" */
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-color-light);
+  font-style: italic;
+}
+
+/* Animation pour l'apparition/disparition des résultats */
+.contact-item {
+  transition: all 0.3s ease;
+}
+
+/* Style pour mettre en évidence les résultats de recherche */
+.contact-item.searchable {
+  border-left: 3px solid var(--first-color);
+}
+
+/* Style pour les résultats de recherche */
+.contact-item.search-result {
+  background-color: var(--container-color);
+  border-left: 3px solid var(--first-color);
+  transform: translateX(5px);
+  transition: all 0.3s ease;
+}
+
+.contact-item.search-result:hover {
+  background-color: var(--first-color-lighter);
+  cursor: pointer;
+}
+
+/* Animation pour l'apparition/disparition des résultats */
+.contact-item {
+  transition: all 0.3s ease;
+}
+
+/* Style pour le message "aucun résultat" */
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-color-light);
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+/* Style pour le bouton de recherche */
+.search-button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.search-button:hover {
+  color: var(--first-color);
+  background-color: var(--first-color-lighter);
+  transform: scale(1.1);
+}
+
+.search-button:active {
+  transform: scale(0.95);
+}
+
+.search-button i {
+  font-size: 1.2rem;
+}
+
+/* Style pour le conteneur de recherche */
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Style pour le bouton de recherche */
+.search-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+.search-button:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  transform: scale(1.1);
+}
+
+.search-button:active {
+  transform: scale(0.95);
+}
+
+.search-button i {
+  font-size: 1.2rem;
+}
+
+/* Style pour l'état actif du bouton */
+.search-button.active {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+}
+
+/* Style pour le groupe de recherche */
+.nav-middle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-middle input {
+  padding: 0.5rem;
+  border: 1px solid gray;
+  border-radius: 4px;
+  outline: none;
+}
+
+.nav-middle input:focus {
+  border-color: var(--first-color);
+}
+
+/* Style pour le bouton de recherche */
+.search-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+.search-button:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  transform: scale(1.1);
+}
+
+.search-button:active {
+  transform: scale(0.95);
+}
+
+.search-button i {
+  font-size: 1.2rem;
+}
+
+/* Animation pour les contacts */
+.contact-item {
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+  transform: translateX(5px);
+  background-color: var(--first-color-lighter);
+}
+
+/* Animation pour les actions */
+.action-btn {
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Style pour le loader */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  color: var(--first-color);
+}
+
+.loading-spinner i {
+  font-size: 2rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation pour l'icône de chargement des contacts */
+.contacts-loading {
+  animation: spin 1s linear infinite;
+  color: var(--error-color, #dc3545);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation au survol (optionnel) */
+.contacts-loading:hover {
+  color: var(--error-color-dark, #bd2130);
+}
+
+/* Style pour les boutons d'import/export */
+.toolbar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  transform: translateY(-2px);
+}
+
+.action-btn i {
+  font-size: 1.2rem;
+}
+
+/* Style pour les dialogues de prévisualisation */
+.preview-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.preview-content {
+  background: var(--container-color);
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.preview-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 1rem 0;
+}
+
+.preview-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.format-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.preview-more {
+  text-align: center;
+  color: var(--text-color-light);
+  padding: 0.5rem;
+}
+
+/* Style commun pour les boutons d'action */
+.action-btn,
+.new-contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  transform: translateY(-2px);
+}
+
+.action-btn i {
+  font-size: 1.2rem;
+}
+
+.new-contact-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+}
+
+.new-contact-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+  transform: translateY(-2px);
+  border: 1px solid var(--first-color);
+}
+
+/* Style pour le conteneur des boutons */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}

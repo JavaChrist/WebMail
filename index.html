@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webmail</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="nav-left">
+            <img src="/assets/icone/favicon.ico" alt="Mon logo javachrist" class="logo-javachrist">
+            <ul class="menu-left">
+                <li>
+                    <a href="#"><i class="bx bx-menu icon hamburger-btn"></i></a>
+                    <div class="modal-container">
+                        <div class="modal-overlay">
+                            <div id="myModal" class="modal">
+                                <div class="modal-content">
+                                    <h2>Apps</h2>
+                                    <span class="close"></span>
+                                    <div class="modal-icons">
+                                        <a href="/index.html" class="modal-link home"><i
+                                                class="bx bx-home icon"></i>Menu</a>
+                                        <a href="/reception.html" class="modal-link email"><i
+                                                class="bx bx-envelope icon"></i>Courrier</a>
+                                        <a href="/calendrier.html" class="modal-link calendar"><i
+                                                class="bx bx-calendar icon"></i>Calendrier</a>
+                                        <a href="/contact.html" class="modal-link contact"><i
+                                                class="bx bx-user icon"></i>Carnet d'adresses</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="/index.html"><i class="bx bx-home icon"></i></a></li>
+                <li><a href="/reception.html"><i class="bx bx-envelope icon"></i></a></li>
+                <li><a href="/calendrier.html"><i class="bx bx-calendar icon"></i></a></li>
+                <li><a href="/contact.html"><i class="bx bx-user icon"></i></a></li>
+            </ul>
+        </div>
+
+        <div class="nav-middle">
+            <input type="text" placeholder="Rechercher..."> <i class="bx bx-search"></i>
+        </div>
+        <div class="nav-right">
+            <ul class="menu-right">
+                <li><a href="#"><i class="bx bx-bell icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-loader icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-cog icon"></i></a></li>
+                <li>
+                    <a href="./login.html" id="loginBtn"><i class="bx bx-log-in icon"></i></a>
+                    <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
+                </li>
+            </ul>
+
+            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+
+        </div>
+    </header>
+
+
+
+
+
+
+
+
+
+
+    <script type="module" src="script.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module">
+        
+        import { initializeHeader } from './header.js';
+        initializeHeader();
+    </script>
+    <script src="theme.js"></script>
+</body>
+
+</html>

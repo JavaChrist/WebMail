@@ -1,0 +1,893 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+h1,
+h2 {
+  text-align: center;
+  color: #81b2b7;
+  padding: 10px;
+}
+
+.calendar-container {
+  margin: 20px;
+  padding: 20px;
+  background-color: var(--container-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.view-selector {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.view-selector button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #81b2b7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.view-selector button:hover {
+  background-color: #6a9da0;
+}
+
+#calendarView {
+  margin-top: 20px;
+}
+
+#calendarView table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--container-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#calendarView th,
+#calendarView td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#calendarView th {
+  background-color: #81b2b7;
+  color: white;
+  font-weight: bold;
+  padding: 12px 8px;
+}
+
+#calendarView tr:nth-child(even) {
+  background-color: #f8f8f8;
+}
+
+#calendarView tr:nth-child(odd) {
+  background-color: var(--container-color);
+}
+
+#calendarView td:hover {
+  background-color: #e0f4f5;
+  cursor: pointer;
+}
+
+#calendarView td:nth-child(6),
+#calendarView td:nth-child(7) {
+  background-color: #f5f5f5;
+}
+
+#calendarView td.today {
+  background-color: #b7d8dc;
+  border: 2px solid #81b2b7;
+  font-weight: bold;
+}
+
+#calendarView .event {
+  background-color: #81b2b7;
+  color: white;
+  padding: 2px 4px;
+  margin: 2px 0;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+#calendarView .event:hover {
+  background-color: #6a9da0;
+}
+
+#upcomingAppointments {
+  margin-top: 20px;
+}
+
+#upcomingAppointments ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#upcomingAppointments li {
+  background-color: #e7f0fd;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Styles spécifiques pour la modale des rendez-vous */
+#appointmentModal.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+#appointmentModal .modal-content {
+  background-color: var(--container-color);
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  border-radius: 8px;
+  position: relative;
+  color: var(--text-color);
+}
+
+#appointmentModal .close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  line-height: 30px;
+}
+
+#appointmentModal .close:hover,
+#appointmentModal .close:focus {
+  color: #81b2b7;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Laisser les styles originaux de la modale hamburger intacts */
+#myModal.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 78px;
+  top: 60px;
+  width: 400px;
+  background-color: var(--container-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+#myModal.modal.open {
+  display: block;
+  animation: modalFadeIn 0.3s ease;
+}
+
+.day-view {
+  display: flex;
+  background-color: var(--container-color);
+  border: 1px solid var(--text-color);
+  border-radius: 8px;
+}
+
+.hours-column {
+  width: 20%;
+  border-right: 1px solid var(--text-color);
+  padding-right: 10px;
+  background-color: var(--first-color-lighter);
+}
+
+.hours-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.hours-column li {
+  padding: 15px 0;
+  color: var(--border-color);
+  font-weight: bold;
+  text-align: center;
+  height: 60px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.appointments-column {
+  width: 80%;
+  padding-left: 10px;
+  background-color: var(--container-color);
+}
+
+.appointments-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.appointment-slot {
+  position: relative;
+  height: 60px;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  cursor: pointer;
+  background-color: var(--container-color);
+  transition: background-color 0.3s;
+}
+
+.appointment-slot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-color);
+  opacity: 0.5;
+}
+
+.appointment-slot:first-child {
+  border-top: 1px solid var(--border-color);
+}
+
+.appointment-slot:hover {
+  background-color: #e0f4f5;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content form > * {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  margin: 0;
+}
+
+.modal-content form > *:last-child {
+  border-bottom: none;
+}
+
+.modal-content form button {
+  background-color: #81b2b7;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+
+.modal-content form button:hover {
+  background-color: #6a9da0;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 500px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.date-navigation h2 {
+  width: 400px;
+  text-align: center;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-navigation button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.date-navigation button i {
+  font-size: 24px;
+  color: var(--text-color);
+}
+
+.week-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px;
+}
+
+.week-number {
+  background-color: #81b2b7;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  margin: 0 10px;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.date-navigation button {
+  background-color: #81b2b7;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.date-navigation button:hover {
+  background-color: #6a9da0;
+}
+
+.appointment-item {
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  display: none; /* Caché par défaut */
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.delete-btn i {
+  color: #ff4444;
+  font-size: 1.2em;
+}
+
+.appointment-item:hover .delete-btn {
+  display: block; /* Apparaît au survol */
+}
+
+.delete-btn:hover i {
+  color: #cc0000;
+}
+
+/* Styles pour la vue semaine */
+.week-view {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--container-color);
+}
+
+.week-header {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  background-color: var(--container-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.day-header {
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  height: 1440px;
+}
+
+.time-column {
+  background-color: var(--first-color-lighter);
+  border-right: 1px solid var(--border-color);
+}
+
+.hour-cell {
+  height: 60px;
+  padding: 5px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.day-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-column .appointment-slot {
+  height: 60px;
+  border-bottom: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  padding: 5px;
+  cursor: pointer;
+}
+
+.day-column .appointment-slot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-color);
+  opacity: 0.5;
+}
+
+.day-column .appointment-slot:hover {
+  background-color: #f0f0f0;
+}
+
+.week-appointment {
+  font-size: 0.9em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  margin: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Styles pour la vue mois */
+.month-view {
+  background-color: var(--container-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: visible;
+}
+
+.weekday-header {
+  background: #81b2b7;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.day-cell {
+  background: var(--container-color);
+  min-height: 100px;
+  padding: 5px;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+  border: 1px solid #e0e0e0;
+}
+
+.day-cell:hover {
+  background: #e0f4f5;
+}
+
+.day-cell.empty {
+  background: #f5f5f5;
+  opacity: 0.7;
+  cursor: default;
+}
+
+.day-cell.today {
+  background: #b7d8dc;
+  border: 2px solid #81b2b7;
+  font-weight: bold;
+}
+
+.day-number {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--text-color);
+}
+
+.day-appointments {
+  font-size: 0.8em;
+  overflow-y: auto;
+  max-height: 80px;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+.month-appointment {
+  background: #81b2b7;
+  color: white;
+  padding: 2px 4px;
+  margin: 2px 0;
+  border-radius: 3px;
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.month-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px;
+  color: var(--text-color);
+}
+
+#appointmentModal form input,
+#appointmentModal form select,
+#appointmentModal form textarea {
+  background-color: var(--container-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+/* Ajustement spécifique pour le texte des heures */
+.hour-cell,
+.hours-column ul li {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+/* Pour la vue semaine */
+.week-grid .appointment-slot::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  border-bottom: 1px dashed var(--border-color);
+  opacity: 0.5;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--container-color);
+  color: var(--text-color);
+}
+
+/* Styles de base pour tous les tooltips */
+.appointment-item {
+  position: relative;
+  cursor: pointer;
+}
+
+.appointment-item::after {
+  display: none;
+}
+
+/* Nouveau système de tooltip */
+.appointment-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.month-appointment {
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  cursor: pointer;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip {
+  display: none;
+  position: fixed;
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: pre-line;
+  z-index: 1000;
+  width: max-content;
+  max-width: 300px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.appointment-wrapper:hover .tooltip {
+  display: block;
+}
+
+/* Assurer que les conteneurs sont bien positionnés */
+.day-appointments {
+  position: relative;
+  z-index: 1;
+}
+
+.day-cell {
+  position: relative;
+}
+
+/* Style pour la flèche du tooltip */
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 6px 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--border-color) transparent;
+}
+
+/* Styles pour la vue mois */
+.month-grid {
+  position: relative;
+  overflow: visible;
+}
+
+.day-cell {
+  position: relative;
+  overflow: visible;
+}
+
+.day-appointments {
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+/* Styles pour la vue semaine */
+.week-view {
+  position: relative;
+  overflow: visible;
+}
+
+.week-appointment {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Styles pour la vue jour */
+.day-view {
+  position: relative;
+  overflow: visible;
+}
+
+.appointment-slot {
+  position: relative;
+  overflow: visible;
+}
+
+/* Styles communs pour tous les rendez-vous */
+.appointment-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.appointment-item {
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  cursor: pointer;
+  color: #169dac;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Affichage du tooltip au survol */
+.appointment-wrapper:hover .tooltip {
+  display: block;
+}
+
+/* Styles communs pour tous les rendez-vous */
+.appointment-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.appointment-item {
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Styles spécifiques pour la liste des rendez-vous */
+.list-appointment .appointment-item {
+  background-color: var(--container-color);
+  margin: 5px 0;
+  color: var(--text-color);
+}
+
+.list-appointment .appointment-text {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.delete-btn:hover {
+  color: #ff4444;
+}
+
+/* Styles pour les rendez-vous dans les vues calendrier */
+.month-appointment,
+.week-appointment,
+.day-appointment {
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Affichage du tooltip au survol */
+.appointment-wrapper:hover .tooltip {
+  display: block;
+}
+
+/* Assurer la visibilité des conteneurs */
+.month-grid,
+.week-view,
+.day-view,
+.day-cell,
+.day-appointments,
+.appointment-slot {
+  position: relative;
+  overflow: visible;
+}
+
+/* Style pour les éléments de la liste */
+.appointmentList .appointment-item {
+  box-sizing: border-box;
+  min-height: 60px;
+  height: 60px;
+  margin: 5px 0;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Style pour le bouton de suppression */
+.appointmentList .delete-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Afficher le bouton au survol */
+.appointmentList .appointment-item:hover .delete-button {
+  opacity: 1;
+}
+
+/* Conteneur principal de la liste */
+.appointmentList {
+  height: 300px;
+  margin: 0;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Style unique pour les éléments de rendez-vous */
+.appointmentList .appointment-item {
+  box-sizing: border-box;
+  height: 70px;
+  margin: 5px 0;
+  padding: 10px 40px 10px 10px;
+  background-color: var(--container-color);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Style pour le texte */
+.appointmentList .appointment-text {
+  color: var(--text-color);
+  flex: 1;
+  font-size: 14px;
+  padding: 5px;
+}
+
+/* Style pour le bouton de suppression - caché par défaut */
+#appointmentList .appointment-item .delete-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0 !important;
+  visibility: hidden !important;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+}
+
+/* Afficher la poubelle au survol de l'élément parent */
+#appointmentList .appointment-item:hover .delete-button {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Style pour l'icône de la poubelle */
+#appointmentList .delete-button i {
+  color: #ff4444;
+  font-size: 18px;
+}
+
+/* Optionnel : rouge plus foncé au survol de l'icône */
+#appointmentList .delete-button:hover i {
+  color: #cc0000;
+}
+
+/* Style pour les week-ends */
+.day-cell:nth-child(7n),
+.day-cell:nth-child(7n-1) {
+  background: #f8f8f8;
+}
+
+/* Hover sur les rendez-vous */
+.month-appointment:hover {
+  background: #6a9da0;
+}
+
+/* Effet de survol pour today */
+#calendarView td.today:hover,
+.day-cell.today:hover {
+  background-color: #a5ccd1;
+}

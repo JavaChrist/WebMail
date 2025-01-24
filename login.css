@@ -1,0 +1,519 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body,
+input,
+button {
+  font-size: 16px;
+  font-family: "Arial", sans-serif;
+}
+
+body {
+  color: #fff;
+}
+
+input,
+button {
+  border: none;
+  outline: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+
+button:hover {
+  background-color: #88c2c4;
+}
+
+.login {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.login__img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.login__form {
+  position: relative;
+  background-color: hsla(0, 0%, 10%, 0.1);
+  border: 2px solid #fff;
+  margin-inline: 1.5rem;
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+}
+
+.login__title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+.login__content,
+.login__box {
+  display: grid;
+}
+
+.login__content {
+  row-gap: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.login__box {
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  column-gap: 0.75rem;
+  border-bottom: 2px solid #fff;
+}
+
+.login__icon,
+.login__eye {
+  font-size: 1.25rem;
+}
+
+.login__input {
+  width: 100%;
+  padding-block: 0.8rem;
+  background: none;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.login__box-input {
+  position: relative;
+}
+
+.login__label {
+  position: absolute;
+  left: 0;
+  top: 13px;
+  font-weight: 500;
+  transition: top 0.3s, font-size 0.3s;
+}
+
+.login__eye {
+  position: absolute;
+  right: 0;
+  top: 18px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.login__box:nth-child(2) input {
+  padding-right: 1.8rem;
+}
+
+.login__check,
+.login__check-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.login__check {
+  margin-bottom: 1.5rem;
+}
+
+.login__check-label,
+.login__forgot,
+.login__register {
+  font-size: 16px;
+}
+
+.login__check-group {
+  column-gap: 0.5rem;
+}
+
+.login__check-input {
+  width: 16px;
+  height: 16px;
+}
+
+.login__forgot {
+  color: #fff;
+}
+
+.login__forgot:hover {
+  text-decoration: underline;
+}
+
+.login__button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.login__register {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+p {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.login__register a {
+  color: #fff;
+  font-weight: 500;
+}
+
+.login__register a:hover {
+  text-decoration: underline;
+}
+
+.login__input:focus + .login__label {
+  top: -12px;
+  font-size: 16px;
+}
+
+.login__input:not(:placeholder-shown).login__input:not(:focus) + .login__label {
+  top: -12px;
+  font-size: 16px;
+}
+
+@media screen and (min-width: 576px) {
+  .login {
+    justify-content: center;
+  }
+  .login__form {
+    width: 432px;
+    padding: 4rem 3rem 3.5rem;
+    border-radius: 1.5rem;
+  }
+  .login__title {
+    font-size: 2rem;
+  }
+}
+
+.register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.register__form {
+  position: relative;
+  background-color: hsla(0, 0%, 10%, 0.1);
+  border: 2px solid #fff;
+  margin-inline: 1.5rem;
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+#auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login,
+.register {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#register-form {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+#auth-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+.login,
+.register {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register__img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Appliquer les mêmes styles au formulaire register qu'au formulaire login */
+.register__form {
+  position: relative;
+  background-color: hsla(0, 0%, 10%, 0.1);
+  border: 2px solid #fff;
+  margin-inline: 1.5rem;
+  padding: 2rem 1.5rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+/* Pour les écrans moyens */
+@media screen and (min-width: 576px) {
+  .register__form {
+    width: 432px;
+    padding: 4rem 3rem 3.5rem;
+    border-radius: 1.5rem;
+  }
+}
+
+/* Styles pour les éléments du formulaire register */
+.register__title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+.register__content,
+.register__box {
+  display: grid;
+}
+
+.register__content {
+  row-gap: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.register__box {
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  column-gap: 0.75rem;
+  border-bottom: 2px solid #fff;
+}
+
+.register__icon,
+.register__eye {
+  font-size: 1.25rem;
+}
+
+.register__input {
+  width: 100%;
+  padding-block: 0.8rem;
+  background: none;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.register__box-input {
+  position: relative;
+}
+
+.register__label {
+  position: absolute;
+  left: 0;
+  top: 13px;
+  font-weight: 500;
+  transition: top 0.3s, font-size 0.3s;
+}
+
+.register__eye {
+  position: absolute;
+  right: 0;
+  top: 18px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.register__button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.register__login {
+  text-align: center;
+}
+
+.register__login a {
+  color: #fff;
+  font-weight: 500;
+}
+
+.register__login a:hover {
+  text-decoration: underline;
+}
+
+/* Animation du label pour le register form */
+.register__input:focus + .register__label {
+  top: -12px;
+  font-size: 16px;
+}
+
+.register__input:not(:placeholder-shown).register__input:not(:focus)
+  + .register__label {
+  top: -12px;
+  font-size: 16px;
+}
+
+/* Styles pour l'auto-remplissage */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #fff;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px rgba(0, 0, 0, 0);
+  background: transparent;
+}
+
+/* S'assurer que les inputs ont toujours le texte en blanc */
+.login__input,
+.register__input {
+  color: #fff;
+  background: transparent;
+}
+
+/* Styles pour l'input file */
+.register__box input[type="file"] {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+/* Style du bouton de sélection de fichier */
+.register__box input[type="file"]::-webkit-file-upload-button {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.register__box input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Pour Firefox */
+.register__box input[type="file"]::file-selector-button {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.register__box input[type="file"]::file-selector-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.login__eye,
+.register__eye {
+  position: absolute;
+  right: 0;
+  top: 18px;
+  z-index: 10;
+  cursor: pointer;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.login__box-input,
+.register__box-input {
+  position: relative;
+  width: 100%;
+}
+
+.login__box input,
+.register__box input {
+  padding-right: 2.5rem !important;
+}
+
+/* Assurez-vous que l'icône est visible */
+.bx-hide,
+.bx-show {
+  display: block !important;
+  color: #fff;
+}
+
+.alert {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  z-index: 1000;
+  display: none;
+  animation: slideDown 0.5s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.alert-success {
+  background-color: #28a745;
+  border: 1px solid #218838;
+}
+
+.alert-error {
+  background-color: #dc3545;
+  border: 1px solid #c82333;
+}
+
+@keyframes slideDown {
+  from {
+    top: -100px;
+    opacity: 0;
+  }
+  to {
+    top: 20px;
+    opacity: 1;
+  }
+}

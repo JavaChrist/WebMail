@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réception Javachrist</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reception.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="nav-left">
+            <img src="/assets/icone/favicon.ico" alt="Mon logo javachrist" class="logo-javachrist">
+            <ul class="menu-left">
+                <li>
+                    <a href="#"><i class="bx bx-menu icon hamburger-btn"></i></a>
+                    <div class="modal-container">
+                        <div class="modal-overlay">
+                            <div id="myModal" class="modal">
+                                <div class="modal-content">
+                                    <h2>Apps</h2>
+                                    <span class="close"></span>
+                                    <div class="modal-icons">
+                                        <a href="/index.html" class="modal-link home"><i
+                                                class="bx bx-home icon"></i>Menu</a>
+                                        <a href="/reception.html" class="modal-link email"><i
+                                                class="bx bx-envelope icon"></i>Courrier</a>
+                                        <a href="/calendrier.html" class="modal-link calendar"><i
+                                                class="bx bx-calendar icon"></i>Calendrier</a>
+                                        <a href="/contact.html" class="modal-link contact"><i
+                                                class="bx bx-user icon"></i>Carnet d'adresses</a>
+                                        <div class="separator"></div>
+                                        <a href="#" class="modal-link settings" id="emailSettingsBtn">
+                                            <i class="bx bx-cog icon"></i>
+                                            Réglages email
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="/index.html"><i class="bx bx-home icon"></i></a></li>
+                <li><a href="/reception.html"><i class="bx bx-envelope icon"></i></a></li>
+                <li><a href="/calendrier.html"><i class="bx bx-calendar icon"></i></a></li>
+                <li><a href="/contact.html"><i class="bx bx-user icon"></i></a></li>
+            </ul>
+        </div>
+        <div class="nav-middle">
+            <input type="text" placeholder="Rechercher..."> <i class="bx bx-search"></i>
+        </div>
+        <div class="nav-right">
+            <ul class="menu-right">
+                <li><a href="#"><i class="bx bx-bell icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-loader icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-cog icon"></i></a></li>
+                <li>
+                    <a href="./login.html" id="loginBtn"><i class="bx bx-log-in icon"></i></a>
+                    <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
+                </li>
+            </ul>
+            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+        </div>
+    </header>
+
+    <main class="reception-container">
+        <div class="left-column">
+            <button id="newEmailBtn">
+                <i class='bx bx-plus'></i>
+                Nouveau courriel
+            </button>
+
+            <div class="mail-folders">
+                <!-- Boîte de réception -->
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <i class='bx bx-inbox'></i>
+                        <span>Boîte de réception</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </div>
+                    <div class="accordion-content">
+                        <a href="#" class="folder-item">Principal</a>
+                        <a href="#" class="folder-item">Promotions</a>
+                        <a href="#" class="folder-item">Réseaux sociaux</a>
+                    </div>
+                </div>
+
+                <!-- Autres dossiers principaux -->
+                <a href="#" class="folder-item">
+                    <i class='bx bx-edit'></i>
+                    Brouillons
+                </a>
+                <a href="#" class="folder-item">
+                    <i class='bx bx-send'></i>
+                    Envoyés
+                </a>
+                <a href="#" class="folder-item">
+                    <i class='bx bx-error'></i>
+                    Spam
+                </a>
+                <a href="#" class="folder-item">
+                    <i class='bx bx-trash'></i>
+                    Corbeille
+                </a>
+
+                <!-- Archives -->
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <i class='bx bx-archive'></i>
+                        <span>Archives</span>
+                        <i class='bx bx-chevron-down'></i>
+                    </div>
+                    <div class="accordion-content">
+                        <a href="#" class="folder-item">2024</a>
+                        <a href="#" class="folder-item">2023</a>
+                        <a href="#" class="folder-item">2022</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="right-column">
+            <div class="email-toolbar">
+                <div class="toolbar-left">
+                    <input type="checkbox" id="selectAll">
+                    <button class="refresh-btn">
+                        <i class='bx bx-refresh'></i>
+                    </button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="delete-btn">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                    <button class="archive-btn">
+                        <i class='bx bx-archive'></i>
+                    </button>
+                    <button class="spam-btn">
+                        <i class='bx bx-error'></i>
+                    </button>
+                </div>
+            </div>
+            <div class="email-list">
+                <!-- Les emails seront ajoutés ici dynamiquement -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal pour nouveau courriel -->
+    <div id="newEmailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nouveau courriel</h2>
+                <div class="modal-actions">
+                    <button class="minimize-btn"><i class='bx bx-minus'></i></button>
+                    <button class="maximize-btn"><i class='bx bx-expand-alt'></i></button>
+                    <button class="close"><i class='bx bx-x'></i></button>
+                </div>
+            </div>
+            <form class="email-form">
+                <div class="form-group">
+                    <label for="from">De</label>
+                    <div class="input-with-dropdown">
+                        <input type="email" id="from" value="contact@javachrist.fr" readonly>
+                        <i class='bx bx-chevron-down'></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="to">À</label>
+                    <input type="email" id="to" required>
+                </div>
+                <div class="form-group">
+                    <label for="cc">Cc</label>
+                    <input type="email" id="cc">
+                </div>
+                <div class="form-group">
+                    <label for="bcc">Cci</label>
+                    <input type="email" id="bcc">
+                </div>
+                <div class="form-group">
+                    <label for="subject">Sujet</label>
+                    <input type="text" id="subject">
+                </div>
+                <div class="editor-toolbar">
+                    <button type="button" data-command="undo" title="Annuler">
+                        <i class='bx bx-undo'></i>
+                    </button>
+                    <button type="button" data-command="redo" title="Rétablir">
+                        <i class='bx bx-redo'></i>
+                    </button>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="bold" title="Gras">
+                        <i class='bx bx-bold'></i>
+                    </button>
+                    <button type="button" data-command="italic" title="Italique">
+                        <i class='bx bx-italic'></i>
+                    </button>
+                    <button type="button" data-command="underline" title="Souligné">
+                        <i class='bx bx-underline'></i>
+                    </button>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="insertUnorderedList" title="Liste à puces">
+                        <i class='bx bx-list-ul'></i>
+                    </button>
+                    <button type="button" data-command="insertOrderedList" title="Liste numérotée">
+                        <i class='bx bx-list-ol'></i>
+                    </button>
+                    <span class="separator">|</span>
+                    <select class="font-select">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Palatino">Palatino</option>
+                        <option value="Garamond">Garamond</option>
+                        <option value="Bookman">Bookman</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Lucida Sans">Lucida Sans</option>
+                        <option value="Calibri">Calibri</option>
+                        <option value="Cambria">Cambria</option>
+                        <option value="Century Gothic">Century Gothic</option>
+                        <option value="Franklin Gothic">Franklin Gothic</option>
+                        <option value="Futura">Futura</option>
+                        <option value="Geneva">Geneva</option>
+                    </select>
+
+                    <select class="font-size">
+                        <option value="8">8px</option>
+                        <option value="9">9px</option>
+                        <option value="10">10px</option>
+                        <option value="11">11px</option>
+                        <option value="12">12px</option>
+                        <option value="13">13px</option>
+                        <option value="14">14px</option>
+                        <option value="16">16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                        <option value="22">22px</option>
+                        <option value="24">24px</option>
+                        <option value="26">26px</option>
+                        <option value="28">28px</option>
+                        <option value="32">32px</option>
+                        <option value="36">36px</option>
+                        <option value="40">40px</option>
+                        <option value="48">48px</option>
+                    </select>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="createLink" title="Insérer un lien">
+                        <i class='bx bx-link'></i>
+                    </button>
+                    <button type="button" data-command="insertImage" title="Insérer une image">
+                        <i class='bx bx-image'></i>
+                    </button>
+                </div>
+                <div id="message" class="editor-content" contenteditable="true">
+                    <!-- Signature par défaut -->
+                    <br><br><br>
+                    <div class="signature">
+                        Grohens Christian<br>
+                        Développeur web Freelance<br>
+                        5, rue Maurice Fonvieille<br>
+                        31120 Portet sur Garonne<br>
+                        09 52 62 31 71<br>
+                        <a href="http://www.javachrist.fr">www.javachrist.fr</a>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <button type="submit" class="send-btn">
+                        <i class='bx bx-send'></i>
+                        Envoyer
+                    </button>
+                    <div class="additional-actions">
+                        <button type="button"><i class='bx bx-star'></i></button>
+                        <button type="button"><i class='bx bx-paperclip'></i></button>
+                        <button type="button"><i class='bx bx-dots-horizontal-rounded'></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal des réglages email -->
+    <div id="emailSettingsModal" class="settings-modal">
+        <div class="settings-modal-content">
+            <div class="settings-header">
+                <h2>Paramètres des comptes email</h2>
+                <button class="close-settings"><i class="bx bx-x"></i></button>
+            </div>
+
+            <form id="emailAccountForm" class="email-settings-form">
+                <h3>Ajouter un compte</h3>
+
+                <!-- Informations du compte -->
+                <div class="form-section">
+                    <h4>Informations du compte</h4>
+                    <div class="form-group">
+                        <label for="accountName">Nom du compte</label>
+                        <input type="text" id="accountName" placeholder="Mon compte email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emailAddress">Adresse email</label>
+                        <input type="email" id="emailAddress" placeholder="exemple@domaine.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" required>
+                    </div>
+                </div>
+
+                <!-- Serveur entrant -->
+                <div class="server-settings">
+                    <h4>Serveur de réception (IMAP)</h4>
+                    <div class="form-group">
+                        <label for="imapServer">Serveur IMAP</label>
+                        <input type="text" id="imapServer" placeholder="imap.exemple.com" required>
+                    </div>
+                    <div class="form-group port-security">
+                        <label>Configuration</label>
+                        <div class="port-security-inputs">
+                            <div class="port-input">
+                                <label for="imapPort">Port</label>
+                                <input type="number" id="imapPort" value="993" required>
+                            </div>
+                            <div class="security-input">
+                                <label for="imapSecurity">Sécurité</label>
+                                <select id="imapSecurity" required>
+                                    <option value="SSL/TLS">SSL/TLS</option>
+                                    <option value="STARTTLS">STARTTLS</option>
+                                    <option value="none">Aucune</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="imapUsername">Nom d'utilisateur</label>
+                        <input type="text" id="imapUsername" placeholder="email@exemple.com" required>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="imapAuth" checked>
+                        <label for="imapAuth">Authentification requise</label>
+                    </div>
+                </div>
+
+                <!-- Serveur sortant -->
+                <div class="server-settings">
+                    <h4>Serveur d'envoi (SMTP)</h4>
+                    <div class="form-group">
+                        <label for="smtpServer">Serveur SMTP</label>
+                        <input type="text" id="smtpServer" placeholder="smtp.exemple.com" required>
+                    </div>
+                    <div class="form-group port-security">
+                        <label>Configuration</label>
+                        <div class="port-security-inputs">
+                            <div class="port-input">
+                                <label for="smtpPort">Port</label>
+                                <input type="number" id="smtpPort" value="587" required>
+                            </div>
+                            <div class="security-input">
+                                <label for="smtpSecurity">Sécurité</label>
+                                <select id="smtpSecurity" required>
+                                    <option value="STARTTLS">STARTTLS</option>
+                                    <option value="SSL/TLS">SSL/TLS</option>
+                                    <option value="none">Aucune</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="smtpUsername">Nom d'utilisateur</label>
+                        <input type="text" id="smtpUsername" placeholder="email@exemple.com" required>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="smtpAuth" checked>
+                        <label for="smtpAuth">Authentification requise</label>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">
+                        <i class="bx bx-save"></i>
+                        Enregistrer
+                    </button>
+                    <button type="button" class="test-btn">
+                        <i class="bx bx-test-tube"></i>
+                        Tester la connexion
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour la composition d'email -->
+    <div id="composeEmailModal" class="compose-modal">
+        <div class="compose-modal-content">
+            <div class="compose-header">
+                <h3>Nouveau message</h3>
+                <div class="compose-actions">
+                    <button type="button" class="minimize-btn" id="minimizeEmailBtn">
+                        <i class='bx bx-minus'></i>
+                    </button>
+                    <button type="button" class="maximize-btn" id="maximizeEmailBtn">
+                        <i class='bx bx-expand'></i>
+                    </button>
+                    <button type="button" class="close-compose" id="closeEmailBtn">
+                        <i class='bx bx-x'></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="composeForm" class="email-form">
+                <div class="form-group">
+                    <label for="compose-to">À :</label>
+                    <input type="email" id="compose-to" required>
+                </div>
+                <div class="form-group">
+                    <label for="compose-subject">Objet :</label>
+                    <input type="text" id="compose-subject">
+                </div>
+
+                <div class="editor-toolbar">
+                    <select class="font-select">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Palatino">Palatino</option>
+                        <option value="Garamond">Garamond</option>
+                        <option value="Bookman">Bookman</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Impact">Impact</option>
+                        <option value="Lucida Sans">Lucida Sans</option>
+                        <option value="Calibri">Calibri</option>
+                        <option value="Cambria">Cambria</option>
+                        <option value="Century Gothic">Century Gothic</option>
+                        <option value="Franklin Gothic">Franklin Gothic</option>
+                        <option value="Futura">Futura</option>
+                        <option value="Geneva">Geneva</option>
+                    </select>
+
+                    <select class="font-size">
+                        <option value="8">8px</option>
+                        <option value="9">9px</option>
+                        <option value="10">10px</option>
+                        <option value="11">11px</option>
+                        <option value="12">12px</option>
+                        <option value="13">13px</option>
+                        <option value="14">14px</option>
+                        <option value="16">16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                        <option value="22">22px</option>
+                        <option value="24">24px</option>
+                        <option value="26">26px</option>
+                        <option value="28">28px</option>
+                        <option value="32">32px</option>
+                        <option value="36">36px</option>
+                        <option value="40">40px</option>
+                        <option value="48">48px</option>
+                    </select>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="bold">
+                        <i class='bx bx-bold'></i>
+                    </button>
+                    <button type="button" data-command="italic">
+                        <i class='bx bx-italic'></i>
+                    </button>
+                    <button type="button" data-command="underline">
+                        <i class='bx bx-underline'></i>
+                    </button>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="justifyLeft">
+                        <i class='bx bx-align-left'></i>
+                    </button>
+                    <button type="button" data-command="justifyCenter">
+                        <i class='bx bx-align-middle'></i>
+                    </button>
+                    <button type="button" data-command="justifyRight">
+                        <i class='bx bx-align-right'></i>
+                    </button>
+                    <span class="separator">|</span>
+                    <button type="button" data-command="insertUnorderedList">
+                        <i class='bx bx-list-ul'></i>
+                    </button>
+                    <button type="button" data-command="insertOrderedList">
+                        <i class='bx bx-list-ol'></i>
+                    </button>
+                </div>
+
+                <div class="editor-content" contenteditable="true"></div>
+
+                <div class="form-footer">
+                    <button type="submit" class="send-btn">
+                        <i class='bx bx-send'></i>
+                        Envoyer
+                    </button>
+                    <div class="additional-actions">
+                        <button type="button" class="attach-btn">
+                            <i class='bx bx-paperclip'></i>
+                        </button>
+                        <button type="button" class="delete-draft-btn">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeHeader } from './header.js';
+        initializeHeader();
+    </script>
+    <script src="theme.js"></script>
+    <script type="module" src="reception.js"></script>
+</body>
+
+</html>

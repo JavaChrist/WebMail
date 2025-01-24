@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier Javachrist</title>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="calendrier.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="nav-left">
+            <img src="/assets/icone/favicon.ico" alt="Mon logo javachrist" class="logo-javachrist">
+            <ul class="menu-left">
+                <li>
+                    <a href="#"><i class="bx bx-menu icon hamburger-btn"></i></a>
+                    <div class="modal-container">
+                        <div class="modal-overlay">
+                            <div id="myModal" class="modal">
+                                <div class="modal-content">
+                                    <h2>Apps</h2>
+                                    <span class="close"></span>
+                                    <div class="modal-icons">
+                                        <a href="/index.html" class="modal-link home"><i
+                                                class="bx bx-home icon"></i>Menu</a>
+                                        <a href="/reception.html" class="modal-link email"><i
+                                                class="bx bx-envelope icon"></i>Courrier</a>
+                                        <a href="/calendrier.html" class="modal-link calendar"><i
+                                                class="bx bx-calendar icon"></i>Calendrier</a>
+                                        <a href="/contact.html" class="modal-link contact"><i
+                                                class="bx bx-user icon"></i>Carnet d'adresses</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="/index.html"><i class="bx bx-home icon"></i></a></li>
+                <li><a href="/reception.html"><i class="bx bx-envelope icon"></i></a></li>
+                <li><a href="/calendrier.html"><i class="bx bx-calendar icon"></i></a></li>
+                <li><a href="/contact.html"><i class="bx bx-user icon"></i></a></li>
+            </ul>
+        </div>
+        <div class="nav-middle">
+            <input type="text" placeholder="Rechercher..."> <i class="bx bx-search"></i>
+        </div>
+        <div class="nav-right">
+            <ul class="menu-right">
+                <li><a href="#"><i class="bx bx-bell icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-loader icon"></i></a></li>
+                <li><a href="#"><i class="bx bx-cog icon"></i></a></li>
+                <li>
+                    <a href="./login.html" id="loginBtn"><i class="bx bx-log-in icon"></i></a>
+                    <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
+                </li>
+            </ul>
+            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+        </div>
+    </header>
+
+    <h1>MON AGENDA</h1>
+
+    <div id="upcomingAppointments">
+        <h2>Mes prochains RDV</h2>
+        <ul id="appointmentList">
+            <!-- Liste des rendez-vous -->
+        </ul>
+    </div>
+
+    <div class="calendar-container">
+        <div class="view-selector">
+            <button id="dayViewBtn">Jour</button>
+            <button id="weekViewBtn">Semaine</button>
+            <button id="monthViewBtn">Mois</button>
+        </div>
+
+        <div id="calendarView">
+            <!-- Contenu dynamique pour les vues jour, semaine, mois -->
+        </div>
+    </div>
+
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajouter un rendez-vous</h2>
+            <form id="appointmentForm">
+                <label for="title">Titre:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="time">Créneau horaire:</label>
+                <input type="time" id="time" name="time" required>
+
+                <label for="category">Rubrique:</label>
+                <select id="category" name="category">
+                    <option value="rendezvous">Rendez-vous</option>
+                    <option value="task">Tâche à réaliser</option>
+                    <option value="validatedTask">Tâche validée</option>
+                    <option value="misc">Divers</option>
+                </select>
+
+                <button type="submit">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeHeader } from './header.js';
+        initializeHeader();
+    </script>
+    <script src="theme.js"></script>
+    <script src="calendrier.js"></script>
+</body>
+
+</html>
