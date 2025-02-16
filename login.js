@@ -1,220 +1,264 @@
 import {
     auth,
+    db,
     storage,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    doc,
+    setDoc,
+    serverTimestamp,
     ref,
     uploadBytes,
-    getDownloadURL,
-    updateProfile,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword
+    getDownloadURL
 } from './firebase-config.js';
 
-const showHiddenPass = (loginPass, loginEye) => {
-    const input = document.getElementById(loginPass),
-        iconEye = document.getElementById(loginEye)
+// Fonction pour les alertes
+const showAlert = (message, type) => {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 3000);
+};
 
-    iconEye.addEventListener('click', () => {
-        // Change password to text
-        if (input.type === 'password') {
-            // Switch to text
-            input.type = 'text'
-            // Change icon
-            iconEye.classList.remove('bx-hide')
-            iconEye.classList.add('bx-show')
-        } else {
-            // Change to password
-            input.type = 'password'
-            // Change icon
-            iconEye.classList.remove('bx-show')
-            iconEye.classList.add('bx-hide')
+// Fonction pour l'upload de la photo
+const uploadProfileImage = async (file, userId) => {
+    try {
+        // Stocker la photo dans localStorage avant l'upload
+        const reader = new FileReader();
+        await new Promise((resolve, reject) => {
+            reader.onload = function (e) {
+                const photoData = {
+                    data: e.target.result,
+                    name: file.name,
+                    type: file.type
+                };
+                localStorage.setItem('initialProfilePhoto', JSON.stringify(photoData));
+                console.log('📸 Photo stockée dans localStorage avant upload:', file.name);
+                resolve();
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        const timestamp = Date.now();
+        const extension = file.name.split('.').pop();
+        const fileName = `profilePhotos/${userId}/${timestamp}.${extension}`;
+        const storageRef = ref(storage, fileName);
+
+        const snapshot = await uploadBytes(storageRef, file);
+        const photoURL = await getDownloadURL(snapshot.ref);
+        console.log('✅ Photo uploadée avec succès:', photoURL);
+        return photoURL;
+    } catch (error) {
+        console.error('❌ Erreur upload:', error);
+        throw error;
+    }
+};
+
+// Fonction de validation
+const validateForm = (email, password) => {
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new Error('Format d\'email invalide');
+    }
+
+    // Validation mot de passe
+    if (password.length < 6) {
+        throw new Error('Le mot de passe doit contenir au moins 6 caractères');
+    }
+};
+
+// Gestionnaire de connexion
+const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-pass').value;
+
+        await signInWithEmailAndPassword(auth, email, password);
+        showAlert('Connexion réussie !', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+    } catch (error) {
+        showAlert('Erreur de connexion: ' + error.message, 'error');
+    }
+};
+
+// Gestionnaire d'inscription
+const handleRegister = async (e) => {
+    e.preventDefault();
+    console.log('Début inscription...');
+
+    try {
+        const email = document.getElementById('register-email').value.trim();
+        const password = document.getElementById('register-pass').value;
+        const firstName = document.getElementById('register-firstname').value.trim();
+        const lastName = document.getElementById('register-lastname').value.trim();
+        const photoFile = document.getElementById('register-photo').files[0];
+
+        // Validation des champs
+        if (!email || !password || !firstName || !lastName) {
+            throw new Error('Tous les champs sont obligatoires');
         }
-    })
-}
 
-// Fonction pour afficher l'alerte
-function showAlert(message, type = 'success') {
-    console.log('Affichage alerte:', message, type); // Debug log
+        // Validation email et mot de passe
+        validateForm(email, password);
 
-    // Supprimer l'ancienne alerte si elle existe
-    const existingAlert = document.querySelector('.alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
+        console.log('Données validées, création utilisateur...');
 
-    // Créer une nouvelle alerte
-    const alertElement = document.createElement('div');
-    alertElement.className = `alert alert-${type}`;
-    alertElement.textContent = message;
-
-    // Ajouter l'alerte au document
-    document.body.appendChild(alertElement);
-
-    // Forcer un reflow pour que l'animation fonctionne
-    alertElement.offsetHeight;
-
-    // Afficher l'alerte
-    alertElement.style.display = 'block';
-
-    // La masquer après 3 secondes
-    setTimeout(() => {
-        alertElement.style.display = 'none';
-        alertElement.remove();
-    }, 3000);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    showHiddenPass('login-pass', 'login-eye')
-    showHiddenPass('register-pass', 'register-eye')
-    // Éléments DOM
-    const loginFormContainer = document.getElementById('login-form');
-    const registerFormContainer = document.getElementById('register-form');
-    const showRegisterBtn = document.getElementById('show-register');
-    const showLoginBtn = document.getElementById('show-login');
-    const loginFormElement = document.querySelector('.login__form');
-    const registerFormElement = document.querySelector('.register__form');
-
-    // Gestion de la bascule entre les formulaires
-    if (showRegisterBtn) {
-        showRegisterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Switching to register form');
-            loginFormContainer.classList.add('hidden');
-            registerFormContainer.classList.remove('hidden');
-        });
-    }
-
-    if (showLoginBtn) {
-        showLoginBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Switching to login form');
-            registerFormContainer.classList.add('hidden');
-            loginFormContainer.classList.remove('hidden');
-        });
-    }
-
-    // Gestion de la connexion
-    if (loginFormElement) {
-        loginFormElement.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-pass').value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                showAlert('Connexion réussie ! Redirection en cours...', 'success');
-
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 3000);
-            } catch (error) {
-                console.error('Erreur de connexion:', error);
-                let errorMessage;
-
-                switch (error.code) {
-                    case 'auth/invalid-credential':
-                        errorMessage = 'Email ou mot de passe incorrect.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = 'Ce compte a été désactivé.';
-                        break;
-                    case 'auth/user-not-found':
-                        errorMessage = 'Aucun compte ne correspond à cet email.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Mot de passe incorrect.';
-                        break;
-                    default:
-                        errorMessage = 'Une erreur est survenue lors de la connexion.';
-                }
-
-                showAlert(errorMessage, 'error');
-            }
-        });
-    }
-
-    // Gestion de l'inscription
-    if (registerFormElement) {
-        registerFormElement.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            console.log('Début de l\'inscription');
-
-            try {
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-pass').value;
-                const firstName = document.getElementById('register-firstname').value;
-                const lastName = document.getElementById('register-lastname').value;
-                const photoFile = document.getElementById('register-photo').files[0];
-
-                // Vérifier si une photo a été sélectionnée
-                if (!photoFile) {
-                    showAlert('Veuillez sélectionner une photo de profil', 'error');
-                    return;
-                }
-
-                // Vérifier le type de fichier
-                if (!photoFile.type.startsWith('image/')) {
-                    showAlert('Veuillez sélectionner un fichier image valide', 'error');
-                    return;
-                }
-
-                // Créer l'utilisateur
-                console.log('Création de l\'utilisateur...');
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
+        try {
+            // Upload de la photo d'abord si elle existe
+            let photoURL = '/assets/image/defaut-contact.png';
+            if (photoFile) {
                 try {
-                    // Upload de la photo
-                    console.log('Upload de la photo...');
-                    const storageRef = ref(storage, `profilePhotos/${user.uid}`);
-                    const snapshot = await uploadBytes(storageRef, photoFile);
-                    console.log('Photo uploadée avec succès');
-
-                    // Obtenir l'URL de la photo
-                    const photoURL = await getDownloadURL(snapshot.ref);
-                    console.log('URL de la photo obtenue:', photoURL);
-
-                    // Mettre à jour le profil avec la photo et le nom
-                    await updateProfile(user, {
-                        displayName: `${firstName} ${lastName}`,
-                        photoURL: photoURL
-                    });
-
-                    console.log('Profil mis à jour avec succès');
-                    showAlert('Compte créé avec succès ! Redirection en cours...', 'success');
-
-                    // Redirection après un délai
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 3000);
-
+                    console.log('📸 Début upload photo...');
+                    photoURL = await uploadProfileImage(photoFile, 'temp'); // On utilisera un ID temporaire
+                    console.log('✅ Photo uploadée avec succès:', photoURL);
                 } catch (uploadError) {
-                    console.error('Erreur lors de l\'upload:', uploadError);
-                    showAlert('Erreur lors de l\'upload de la photo. Veuillez réessayer.', 'error');
+                    console.error('❌ Erreur upload photo:', uploadError);
+                    // Continue même si l'upload de la photo échoue
                 }
+            }
 
-            } catch (error) {
-                console.error('Erreur d\'inscription:', error);
-                let errorMessage;
+            // Création de l'utilisateur
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            console.log('👤 Utilisateur créé:', user.uid);
 
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'L\'adresse email n\'est pas valide.';
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = 'L\'inscription par email/mot de passe n\'est pas activée.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.';
-                        break;
-                    default:
-                        errorMessage = 'Une erreur est survenue lors de l\'inscription.';
-                }
+            // Mise à jour du profil
+            try {
+                await updateProfile(user, {
+                    displayName: `${firstName} ${lastName}`,
+                    photoURL: photoURL
+                });
+                console.log('✅ Profil mis à jour');
+            } catch (profileError) {
+                console.error('❌ Erreur mise à jour profil:', profileError);
+            }
 
-                showAlert(errorMessage, 'error');
+            // Création document Firestore
+            try {
+                await setDoc(doc(db, 'users', user.uid), {
+                    uid: user.uid,
+                    email,
+                    firstName,
+                    lastName,
+                    photoURL,
+                    createdAt: serverTimestamp()
+                });
+                console.log('✅ Document Firestore créé');
+            } catch (firestoreError) {
+                console.error('❌ Erreur Firestore:', firestoreError);
+            }
+
+            showAlert('Inscription réussie !', 'success');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+
+        } catch (error) {
+            console.error('❌ Erreur complète:', error);
+            let message;
+
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    message = 'Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse.';
+                    // Basculer vers le formulaire de connexion et pré-remplir l'email
+                    document.getElementById('show-login').click();
+                    const loginEmail = document.getElementById('login-email');
+                    if (loginEmail) {
+                        loginEmail.value = email;
+                    }
+                    break;
+                case 'auth/invalid-email':
+                    message = 'Format d\'email invalide. Veuillez vérifier votre saisie.';
+                    break;
+                case 'auth/operation-not-allowed':
+                    message = 'L\'inscription est temporairement désactivée. Veuillez réessayer plus tard.';
+                    break;
+                case 'auth/weak-password':
+                    message = 'Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.';
+                    break;
+                default:
+                    message = 'Erreur lors de l\'inscription : ' + error.message;
+            }
+
+            showAlert(message, 'error');
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('❌ Erreur lors de l\'inscription:', error);
+    }
+};
+
+// Initialisation au chargement du DOM
+document.addEventListener('DOMContentLoaded', () => {
+    // Toggle password visibility
+    const togglePassword = (inputId, eyeId) => {
+        const input = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
+        if (eye && input) {
+            eye.addEventListener('click', () => {
+                input.type = input.type === 'password' ? 'text' : 'password';
+                eye.classList.toggle('bx-hide');
+                eye.classList.toggle('bx-show');
+            });
+        }
+    };
+
+    // Setup photo preview
+    const photoInput = document.getElementById('register-photo');
+    const previewContainer = document.getElementById('photo-preview-container');
+    if (photoInput && previewContainer) {
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewContainer.innerHTML = `
+                        <img src="${e.target.result}" id="photo-preview" alt="Prévisualisation">
+                    `;
+                };
+                reader.readAsDataURL(file);
             }
         });
     }
+
+    // Toggle forms
+    document.getElementById('show-register')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('login-form')?.classList.add('hidden');
+        document.getElementById('register-form')?.classList.remove('hidden');
+    });
+
+    document.getElementById('show-login')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('register-form')?.classList.add('hidden');
+        document.getElementById('login-form')?.classList.remove('hidden');
+    });
+
+    // Setup password toggles
+    togglePassword('login-pass', 'login-eye');
+    togglePassword('register-pass', 'register-eye');
+
+    // Setup form submissions
+    document.querySelector('.login__form')?.addEventListener('submit', handleLogin);
+    const registerForm = document.querySelector('.register__form');
+    if (registerForm) {
+        console.log('Gestionnaire d\'inscription attaché');
+        registerForm.addEventListener('submit', handleRegister);
+    } else {
+        console.error('Formulaire d\'inscription non trouvé'); // Log de debug
+    }
+
+    // Check auth state
+    auth.onAuthStateChanged(user => {
+        const currentPath = window.location.pathname;
+        if (!user && !currentPath.includes('login.html')) {
+            window.location.href = 'login.html';
+        } else if (user && currentPath.includes('login.html')) {
+            window.location.href = 'index.html';
+        }
+    });
 });

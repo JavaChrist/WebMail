@@ -187,13 +187,13 @@ h2 {
 .day-view {
   display: flex;
   background-color: var(--container-color);
-  border: 1px solid var(--text-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
 .hours-column {
   width: 20%;
-  border-right: 1px solid var(--text-color);
+  border-right: 1px solid var(--border-color);
   padding-right: 10px;
   background-color: var(--first-color-lighter);
 }
@@ -248,7 +248,7 @@ h2 {
 }
 
 .appointment-slot:hover {
-  background-color: #e0f4f5;
+  background-color: var(--first-color-lighter);
 }
 
 .modal-content form {
@@ -280,37 +280,55 @@ h2 {
 
 .date-navigation {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  width: 500px;
-  margin: 0 auto;
+  margin-bottom: 20px;
   padding: 10px;
 }
 
 .date-navigation h2 {
-  width: 400px;
-  text-align: center;
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.date-navigation button {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.date-navigation button i {
-  font-size: 24px;
   color: var(--text-color);
+}
+
+/* Style des boutons de navigation */
+#prevDay,
+#nextDay,
+#prevWeek,
+#nextWeek,
+#prevMonth,
+#nextMonth {
+  background-color: #81b2b7;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+/* Style au survol */
+#prevDay:hover,
+#nextDay:hover,
+#prevWeek:hover,
+#nextWeek:hover,
+#prevMonth:hover,
+#nextMonth:hover {
+  background-color: #5c8a8f; /* Version plus foncée de la couleur principale */
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Style au clic */
+#prevDay:active,
+#nextDay:active,
+#prevWeek:active,
+#nextWeek:active,
+#prevMonth:active,
+#nextMonth:active {
+  transform: scale(0.95);
+  box-shadow: none;
 }
 
 .week-title {
@@ -332,8 +350,8 @@ h2 {
 }
 
 .date-navigation button {
-  background-color: #81b2b7;
-  color: #fff;
+  background-color: var(--first-color);
+  color: var(--container-color);
   border: none;
   padding: 10px;
   cursor: pointer;
@@ -342,7 +360,7 @@ h2 {
 }
 
 .date-navigation button:hover {
-  background-color: #6a9da0;
+  background-color: var(--first-color-dark);
 }
 
 .appointment-item {
@@ -352,9 +370,11 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f5f5f5;
+  background-color: var(--container-color);
   border-radius: 4px;
   cursor: pointer;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 
 .delete-btn {
@@ -383,32 +403,76 @@ h2 {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background-color: var(--container-color);
+  margin: 20px;
+}
+
+.days-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .week-header {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
   background-color: var(--container-color);
+  padding: 15px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
-.day-header {
-  padding: 10px;
-  text-align: center;
-  font-weight: bold;
-  border-left: 1px solid var(--border-color);
-  color: var(--text-color);
+/* Style pour le jour actuel dans l'en-tête */
+.day-header.current-day {
+  background-color: #81b2b7;
+  color: white;
+  border-radius: 8px;
+  padding: 5px;
 }
 
-.week-grid {
-  display: grid;
-  grid-template-columns: 80px repeat(7, 1fr);
-  height: 1440px;
+.day-header.current-day .weekday,
+.day-header.current-day .date {
+  color: white;
+}
+
+.header-spacer {
+  width: 80px;
+}
+
+.time-grid-container {
+  display: flex;
 }
 
 .time-column {
-  background-color: var(--first-color-lighter);
+  width: 80px;
+  color: var(--text-color);
   border-right: 1px solid var(--border-color);
+  background-color: var(--container-color);
+}
+
+.week-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--container-color);
+}
+
+/* Alternance des couleurs pour les créneaux horaires */
+.hour-cell:nth-child(even),
+.appointment-slot:nth-child(even) {
+  background-color: var(--container-color);
+}
+
+.hour-cell:nth-child(odd),
+.appointment-slot:nth-child(odd) {
+  background-color: var(--first-color-lighter);
+}
+
+/* Style pour la colonne du jour actuel */
+.day-column.current-day {
+  background-color: rgba(
+    129,
+    178,
+    183,
+    0.1
+  ); /* Teinte légère de la couleur principale */
 }
 
 .hour-cell {
@@ -419,69 +483,108 @@ h2 {
   align-items: center;
   justify-content: center;
   color: var(--text-color);
+  font-size: 0.9em;
 }
 
 .day-column {
-  display: flex;
-  flex-direction: column;
+  border-right: 1px solid var(--border-color);
 }
 
-.day-column .appointment-slot {
+.day-column:last-child {
+  border-right: none;
+}
+
+.appointment-slot {
   height: 60px;
   border-bottom: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
   padding: 5px;
   cursor: pointer;
+  position: relative;
 }
 
-.day-column .appointment-slot::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 100%;
-  border-bottom: 1px dashed var(--border-color);
-  opacity: 0.5;
+/* Hover effect pour les créneaux */
+.appointment-slot:hover {
+  background-color: rgba(129, 178, 183, 0.2);
 }
 
-.day-column .appointment-slot:hover {
-  background-color: #f0f0f0;
-}
-
-.week-appointment {
-  font-size: 0.9em;
-  padding: 2px 5px;
-  border-radius: 3px;
-  margin: 2px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* Le reste du code reste identique */
 
 /* Styles pour la vue mois */
 .month-view {
+  width: 90%;
+  max-width: 1350px;
   background-color: var(--container-color);
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 2px 4px var(--shadow-color);
+  margin: 0 auto;
+  font-size: 1em;
 }
 
 .month-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
   gap: 1px;
   background: var(--border-color);
   border: 1px solid var(--border-color);
-  position: relative;
-  overflow: visible;
+  width: 100%;
 }
 
-.weekday-header {
-  background: #81b2b7;
-  color: white;
-  padding: 10px;
-  text-align: center;
+.month-cell {
+  position: relative;
+  background: var(--container-color);
+  padding: 3px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  min-height: 90px;
+  max-height: 120px;
+}
+
+.month-cell:hover {
+  background: var(--first-color-lighter);
+}
+
+.month-cell.empty {
+  background: #f5f5f5;
+  opacity: 0.7;
+  cursor: default;
+}
+
+.month-cell.today {
+  background: var(--first-color);
+  border: 2px solid #81b2b7;
   font-weight: bold;
+  color: var(--container-color);
+}
+
+.day-number {
+  font-size: 0.95em;
+  margin-bottom: 2px;
+  text-align: right;
+  padding-right: 3px;
+}
+
+.day-appointments {
+  font-size: 0.85em;
+  overflow-y: auto;
+  max-height: 67px;
+}
+
+/* Styles pour les en-têtes des jours de la semaine */
+.weekday-header {
+  padding: 5px;
+  font-size: 0.95em;
+  text-align: center;
+  background-color: #81b2b7;
+  color: white;
+  font-weight: bold;
+}
+
+/* Style pour le survol des en-têtes */
+.weekday-header:hover {
+  background-color: #6a9da0;
 }
 
 .day-cell {
@@ -495,7 +598,7 @@ h2 {
 }
 
 .day-cell:hover {
-  background: #e0f4f5;
+  background: var(--first-color-lighter);
 }
 
 .day-cell.empty {
@@ -505,15 +608,10 @@ h2 {
 }
 
 .day-cell.today {
-  background: #b7d8dc;
+  background: var(--first-color);
   border: 2px solid #81b2b7;
   font-weight: bold;
-}
-
-.day-number {
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: var(--text-color);
+  color: var(--container-color);
 }
 
 .day-appointments {
@@ -526,23 +624,18 @@ h2 {
 }
 
 .month-appointment {
-  background: #81b2b7;
-  color: white;
-  padding: 2px 4px;
+  padding: 2px 3px;
   margin: 2px 0;
   border-radius: 3px;
-  font-size: 0.9em;
+  font-size: 0.85em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .month-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 20px;
-  color: var(--text-color);
+  font-size: 1.2em;
+  margin: 8px 0;
 }
 
 #appointmentModal form input,
@@ -622,7 +715,7 @@ h2 {
   z-index: 1000;
   width: max-content;
   max-width: 300px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px var(--shadow-color);
 }
 
 .appointment-wrapper:hover .tooltip {
@@ -890,4 +983,300 @@ h2 {
 #calendarView td.today:hover,
 .day-cell.today:hover {
   background-color: #a5ccd1;
+}
+
+/* Styles de base */
+.calendar-container {
+  background-color: var(--container-color);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+/* Vue jour */
+.day-view {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+}
+
+.hours-column {
+  background-color: var(--first-color-lighter);
+  border-right: 1px solid var(--border-color);
+}
+
+.hours-column li {
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.appointment-slot {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+}
+
+.appointment-slot:hover {
+  background-color: var(--first-color-lighter);
+}
+
+/* Vue semaine */
+.week-view {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+}
+
+.week-cell {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+}
+
+.week-cell:hover {
+  background-color: var(--first-color-lighter);
+}
+
+/* Vue mois */
+.month-cell {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.month-cell:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.month-cell.other-month {
+  background-color: var(--first-color-lighter);
+  color: var(--text-color-light);
+}
+
+.month-cell.today {
+  background-color: var(--first-color);
+  color: var(--container-color);
+}
+
+/* Rendez-vous */
+.appointment-item {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.tooltip {
+  background-color: var(--container-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+/* Navigation */
+.date-navigation button {
+  background-color: var(--first-color);
+  color: var(--container-color);
+}
+
+.date-navigation button:hover {
+  background-color: var(--first-color-dark);
+}
+
+/* Styles pour le champ de rappel */
+#reminder {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--container-color);
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+/* Style pour les groupes d'options */
+#reminder optgroup {
+  font-weight: bold;
+  color: var(--first-color);
+  background-color: var(--container-color);
+}
+
+/* Style pour les options */
+#reminder option {
+  padding: 8px;
+  color: var(--text-color);
+  background-color: var(--container-color);
+}
+
+/* Style au survol des options */
+#reminder option:hover {
+  background-color: var(--first-color-lighter);
+}
+
+/* Style pour le label du rappel */
+label[for="reminder"] {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+/* Style pour le select au focus */
+#reminder:focus {
+  outline: none;
+  border-color: var(--first-color);
+  box-shadow: 0 0 0 2px rgba(129, 178, 183, 0.2);
+}
+
+/* Style pour le select désactivé */
+#reminder:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Animation au hover */
+#reminder:hover {
+  border-color: var(--first-color);
+  transition: border-color 0.3s ease;
+}
+
+/* Styles pour les champs de répétition */
+#repeat,
+#repeatEnd {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--container-color);
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+#repeatEndContainer {
+  margin-top: 10px;
+}
+
+/* Style pour les groupes d'options de répétition */
+#repeat optgroup {
+  font-weight: bold;
+  color: var(--first-color);
+  background-color: var(--container-color);
+}
+
+/* Style pour les options de répétition */
+#repeat option {
+  padding: 8px;
+  color: var(--text-color);
+  background-color: var(--container-color);
+}
+
+/* Style au survol des options */
+#repeat option:hover {
+  background-color: var(--first-color-lighter);
+}
+
+/* Style pour les labels */
+label[for="repeat"],
+label[for="repeatEnd"] {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+/* Style pour les champs au focus */
+#repeat:focus,
+#repeatEnd:focus {
+  outline: none;
+  border-color: var(--first-color);
+  box-shadow: 0 0 0 2px rgba(129, 178, 183, 0.2);
+}
+
+/* Animation au hover */
+#repeat:hover,
+#repeatEnd:hover {
+  border-color: var(--first-color);
+  transition: border-color 0.3s ease;
+}
+
+/* Style pour les rendez-vous répétés dans la liste */
+.appointment-item.repeated {
+  border-left: 3px solid var(--first-color);
+}
+
+/* Ajustement de la navigation du mois */
+.date-navigation {
+  width: 100%;
+  max-width: 1350px;
+  margin: 0 auto 15px auto;
+}
+
+/* Styles pour le sélecteur de visibilité */
+#visibility {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--container-color);
+  color: var(--text-color);
+}
+
+/* Styles pour les différentes visibilités dans la liste */
+.appointment-item.visibility-default {
+  border-left-color: #81b2b7;
+}
+
+.appointment-item.visibility-private {
+  border-left-color: #ff7f7f;
+}
+
+.appointment-item.visibility-pro {
+  border-left-color: #90ee90;
+}
+
+/* Effet de survol sur le sélecteur */
+#visibility:hover {
+  border-color: var(--first-color);
+}
+
+/* Style au focus */
+#visibility:focus {
+  outline: none;
+  border-color: var(--first-color);
+  box-shadow: 0 0 0 2px rgba(129, 178, 183, 0.2);
+}
+
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-upload {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.change-photo-btn {
+  background-color: var(--first-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.change-photo-btn:hover {
+  background-color: var(--first-color-dark);
+  transform: scale(1.1);
+}
+
+.photo-login {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }

@@ -9,13 +9,21 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Une application de messagerie web moderne développée avec JavaScript, Firebase et Node.js. Cette application permet la gestion des emails, des contacts et du calendrier avec une interface utilisateur intuitive.",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "firebase-admin": "^13.0.2",
+    "firebase-admin": "^13.1.0",
     "mailparser": "^3.7.2",
     "node-imap": "^0.9.6",
-    "nodemailer": "^6.9.16"
-  }
+    "nodemailer": "^6.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JavaChrist/WebMail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JavaChrist/WebMail/issues"
+  },
+  "homepage": "https://github.com/JavaChrist/WebMail#readme"
 }

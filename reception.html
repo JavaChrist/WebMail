@@ -9,6 +9,16 @@
     <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="reception.css">
+    <link rel="manifest" href="manifest.json">
+    <!-- Ajouter dans la section head de chaque page HTML protégée -->
+    <script type="module">
+        import { protectRoute } from './js/auth-guard.js';
+
+        // Protéger la route
+        protectRoute().catch(error => {
+            console.error('Erreur d\'authentification:', error);
+        });
+    </script>
 </head>
 
 <body>
@@ -63,7 +73,7 @@
                     <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
                 </li>
             </ul>
-            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+            <img src="/assets/image/defaut-contact.png" alt="Photo de profil" class="photo-login">
         </div>
     </header>
 
@@ -73,6 +83,10 @@
                 <i class='bx bx-plus'></i>
                 Nouveau courriel
             </button>
+
+            <div class="email-accounts">
+                <!-- Les comptes email seront ajoutés ici dynamiquement -->
+            </div>
 
             <div class="mail-folders">
                 <!-- Boîte de réception -->
@@ -112,12 +126,13 @@
                     <div class="accordion-header">
                         <i class='bx bx-archive'></i>
                         <span>Archives</span>
+                        <button class="add-folder-btn" title="Ajouter un dossier">
+                            <i class='bx bx-plus'></i>
+                        </button>
                         <i class='bx bx-chevron-down'></i>
                     </div>
                     <div class="accordion-content">
-                        <a href="#" class="folder-item">2024</a>
-                        <a href="#" class="folder-item">2023</a>
-                        <a href="#" class="folder-item">2022</a>
+                        <!-- Les dossiers d'archives seront ajoutés ici dynamiquement -->
                     </div>
                 </div>
             </div>
@@ -209,47 +224,30 @@
                     </button>
                     <span class="separator">|</span>
                     <select class="font-select">
-                        <option value="Arial">Arial</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Helvetica">Helvetica</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Verdana">Verdana</option>
-                        <option value="Tahoma">Tahoma</option>
-                        <option value="Trebuchet MS">Trebuchet MS</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Palatino">Palatino</option>
-                        <option value="Garamond">Garamond</option>
-                        <option value="Bookman">Bookman</option>
-                        <option value="Comic Sans MS">Comic Sans MS</option>
-                        <option value="Impact">Impact</option>
-                        <option value="Lucida Sans">Lucida Sans</option>
-                        <option value="Calibri">Calibri</option>
-                        <option value="Cambria">Cambria</option>
-                        <option value="Century Gothic">Century Gothic</option>
-                        <option value="Franklin Gothic">Franklin Gothic</option>
-                        <option value="Futura">Futura</option>
-                        <option value="Geneva">Geneva</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                        <option value="Helvetica, sans-serif">Helvetica</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        <option value="Tahoma, sans-serif">Tahoma</option>
+                        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+                        <option value="Courier New, monospace">Courier New</option>
+                        <option value="Palatino, serif">Palatino</option>
+                        <option value="Garamond, serif">Garamond</option>
+                        <option value="Bookman, serif">Bookman</option>
+                        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+                        <option value="Impact, sans-serif">Impact</option>
+                        <option value="Lucida Sans, sans-serif">Lucida Sans</option>
                     </select>
 
                     <select class="font-size">
-                        <option value="8">8px</option>
-                        <option value="9">9px</option>
-                        <option value="10">10px</option>
-                        <option value="11">11px</option>
-                        <option value="12">12px</option>
-                        <option value="13">13px</option>
-                        <option value="14">14px</option>
-                        <option value="16">16px</option>
-                        <option value="18">18px</option>
-                        <option value="20">20px</option>
-                        <option value="22">22px</option>
-                        <option value="24">24px</option>
-                        <option value="26">26px</option>
-                        <option value="28">28px</option>
-                        <option value="32">32px</option>
-                        <option value="36">36px</option>
-                        <option value="40">40px</option>
-                        <option value="48">48px</option>
+                        <option value="1">Très petit</option>
+                        <option value="2">Petit</option>
+                        <option value="3" selected>Normal</option>
+                        <option value="4">Moyen</option>
+                        <option value="5">Grand</option>
+                        <option value="6">Très grand</option>
+                        <option value="7">Énorme</option>
                     </select>
                     <span class="separator">|</span>
                     <button type="button" data-command="createLink" title="Insérer un lien">
@@ -427,47 +425,30 @@
 
                 <div class="editor-toolbar">
                     <select class="font-select">
-                        <option value="Arial">Arial</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Helvetica">Helvetica</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Verdana">Verdana</option>
-                        <option value="Tahoma">Tahoma</option>
-                        <option value="Trebuchet MS">Trebuchet MS</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Palatino">Palatino</option>
-                        <option value="Garamond">Garamond</option>
-                        <option value="Bookman">Bookman</option>
-                        <option value="Comic Sans MS">Comic Sans MS</option>
-                        <option value="Impact">Impact</option>
-                        <option value="Lucida Sans">Lucida Sans</option>
-                        <option value="Calibri">Calibri</option>
-                        <option value="Cambria">Cambria</option>
-                        <option value="Century Gothic">Century Gothic</option>
-                        <option value="Franklin Gothic">Franklin Gothic</option>
-                        <option value="Futura">Futura</option>
-                        <option value="Geneva">Geneva</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                        <option value="Helvetica, sans-serif">Helvetica</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        <option value="Tahoma, sans-serif">Tahoma</option>
+                        <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
+                        <option value="Courier New, monospace">Courier New</option>
+                        <option value="Palatino, serif">Palatino</option>
+                        <option value="Garamond, serif">Garamond</option>
+                        <option value="Bookman, serif">Bookman</option>
+                        <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+                        <option value="Impact, sans-serif">Impact</option>
+                        <option value="Lucida Sans, sans-serif">Lucida Sans</option>
                     </select>
 
                     <select class="font-size">
-                        <option value="8">8px</option>
-                        <option value="9">9px</option>
-                        <option value="10">10px</option>
-                        <option value="11">11px</option>
-                        <option value="12">12px</option>
-                        <option value="13">13px</option>
-                        <option value="14">14px</option>
-                        <option value="16">16px</option>
-                        <option value="18">18px</option>
-                        <option value="20">20px</option>
-                        <option value="22">22px</option>
-                        <option value="24">24px</option>
-                        <option value="26">26px</option>
-                        <option value="28">28px</option>
-                        <option value="32">32px</option>
-                        <option value="36">36px</option>
-                        <option value="40">40px</option>
-                        <option value="48">48px</option>
+                        <option value="1">Très petit</option>
+                        <option value="2">Petit</option>
+                        <option value="3" selected>Normal</option>
+                        <option value="4">Moyen</option>
+                        <option value="5">Grand</option>
+                        <option value="6">Très grand</option>
+                        <option value="7">Énorme</option>
                     </select>
                     <span class="separator">|</span>
                     <button type="button" data-command="bold">
