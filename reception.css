@@ -230,67 +230,125 @@
 
 /* Style pour les dossiers */
 .mail-folders {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  padding: 1rem;
 }
 
-.folder-item {
+.folder-item-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 15px;
+  padding: 8px;
+}
+
+.folder-item {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
   color: var(--text-color);
   text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
 .folder-item:hover {
-  background-color: rgba(129, 178, 183, 0.1);
+  background-color: var(--first-color-lighter);
 }
 
-/* Style pour l'accordéon */
-.accordion-item {
-  border-radius: 5px;
-  overflow: hidden;
+.folder-item.active {
+  background-color: var(--first-color);
+  color: white;
+}
+
+.add-folder-btn {
+  background: none;
+  border: none;
+  color: var(--first-color);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.add-folder-btn:hover {
+  background-color: var(--first-color-lighter);
+  transform: scale(1.1);
+}
+
+.add-folder-btn i {
+  font-size: 1.2rem;
+}
+
+.add-subfolder-btn {
+  background: none;
+  border: none;
+  color: var(--first-color);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+.folder-item-container:hover .add-subfolder-btn {
+  opacity: 1;
+}
+
+.add-subfolder-btn:hover {
+  background-color: var(--first-color-lighter);
+  transform: scale(1.1);
 }
 
 .accordion-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--container-color);
   cursor: pointer;
-  transition: background-color 0.2s;
+  border-radius: 0.25rem;
 }
 
-.accordion-header:hover {
-  background-color: rgba(129, 178, 183, 0.1);
+.accordion-header i {
+  font-size: 1.25rem;
 }
 
-.accordion-header i:last-child {
-  margin-left: auto;
-  transition: transform 0.3s;
+.accordion-header span {
+  flex-grow: 1;
 }
 
 .accordion-content {
   display: none;
-  padding-left: 25px;
+  padding-left: 1rem;
 }
 
-.accordion-content .folder-item {
-  padding: 8px 15px;
-}
-
-/* Classe active pour l'accordéon ouvert */
 .accordion-item.active .accordion-content {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
-.accordion-item.active .accordion-header i:last-child {
+.accordion-item.active .accordion-header i.bx-chevron-down {
   transform: rotate(180deg);
+}
+
+/* Styles pour le glisser-déposer */
+.email-item {
+  cursor: move;
+}
+
+.email-item.dragging {
+  opacity: 0.5;
+}
+
+.folder-item.drag-over {
+  background-color: #e3f2fd;
+  border: 2px dashed #1976d2;
 }
 
 /* Style pour le bouton des réglages */
@@ -692,40 +750,29 @@
   transition: all 0.3s ease;
 }
 
-/* Styles des boutons d'action */
-.compose-actions {
+/* État maximisé */
+.compose-modal.maximized {
+  width: 90vw !important;
+  height: 90vh !important;
+  top: 5vh !important;
+  left: 5vw !important;
+  right: 5vw !important;
+  bottom: 5vh !important;
+  border-radius: 8px !important;
+}
+
+/* État minimisé */
+.compose-modal.minimized {
+  width: 600px !important;
+  height: 48px !important;
+  overflow: hidden !important;
+}
+
+/* Contenu de la modal */
+.compose-modal-content {
+  height: 100%;
   display: flex;
-  gap: 5px;
-  z-index: 1001;
-}
-
-.compose-actions button {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  margin: 0;
-  background: none;
-  border: none;
-  cursor: pointer !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  color: var(--text-color);
-  z-index: 1002;
-  position: relative;
-}
-
-.compose-actions button:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.maximize-btn {
-  pointer-events: all !important;
-}
-
-.maximize-btn i {
-  pointer-events: none;
+  flex-direction: column;
 }
 
 /* Header de la modal */
@@ -739,11 +786,28 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-/* Contenu de la modal */
-.compose-modal-content {
-  height: 100%;
+/* Boutons d'action */
+.compose-actions {
   display: flex;
-  flex-direction: column;
+  gap: 5px;
+}
+
+.compose-actions button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--text-color);
+}
+
+.compose-actions button:hover {
+  background-color: var(--hover-color);
 }
 
 /* Empêcher le débordement */
@@ -751,6 +815,7 @@
   flex: 1;
   overflow-y: auto;
   min-height: 200px;
+  padding: 15px;
 }
 
 .toolbar-select {
@@ -776,4 +841,209 @@
 /* Style pour le select de police */
 #fontFamily {
   min-width: 150px;
+}
+
+.email-accounts {
+  margin: 20px 0;
+  padding: 10px;
+  background-color: var(--container-color);
+  border-radius: 8px;
+}
+
+.email-accounts h3 {
+  color: var(--text-color);
+  margin-bottom: 15px;
+  font-size: 1.1em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.email-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px;
+  padding-right: 24px;
+  margin: 5px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.email-account:hover {
+  background-color: var(--first-color-lighter);
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.account-info i {
+  color: var(--first-color);
+  font-size: 1.2em;
+}
+
+.account-info span {
+  color: var(--text-color);
+  font-size: 0.9em;
+}
+
+.account-actions {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.email-account:hover .account-actions {
+  opacity: 1;
+}
+
+.account-actions button {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-color);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-actions .edit-btn:hover {
+  background-color: var(--first-color-lighter);
+  color: var(--first-color);
+}
+
+.account-actions .delete-btn:hover {
+  background-color: #ffebee;
+  color: #f44336;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.notification.success {
+  background-color: #4caf50;
+}
+
+.notification.error {
+  background-color: #f44336;
+}
+
+.notification.info {
+  background-color: #2196f3;
+}
+
+.notification.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Style pour les emails sélectionnés */
+.email-item.selected {
+  background-color: rgba(129, 178, 183, 0.1);
+}
+
+.email-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.email-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  border: 2px solid var(--border-color);
+  border-radius: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  background-color: var(--container-color);
+  transition: all 0.2s;
+}
+
+.email-checkbox input[type="checkbox"]:checked {
+  background-color: #81b2b7;
+  border-color: #81b2b7;
+}
+
+.email-checkbox input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  left: 2px;
+  top: -2px;
+}
+
+/* Style pour le glisser-déposer */
+.email-item.dragging {
+  opacity: 0.5;
+  background-color: rgba(129, 178, 183, 0.1);
+  cursor: move;
+}
+
+.folder-item.drag-over {
+  background-color: rgba(129, 178, 183, 0.2);
+  border: 2px dashed #81b2b7;
+}
+
+/* Style pour les boutons de la barre d'outils */
+.toolbar-right button {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: all 0.2s;
+}
+
+.toolbar-right button:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.toolbar-right button:not(:disabled):hover {
+  background-color: rgba(129, 178, 183, 0.1);
 }

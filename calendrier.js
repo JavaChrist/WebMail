@@ -702,4 +702,3 @@ document.addEventListener('DOMContentLoaded', () => {
         event.stopPropagation();
     });
 });
-

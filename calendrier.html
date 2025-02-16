@@ -9,15 +9,6 @@
     <link rel="shortcut icon" href="assets/icone/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="calendrier.css">
-    <!-- Ajouter dans la section head de chaque page HTML protégée -->
-<script type="module">
-    import { protectRoute } from './js/auth-guard.js';
-    
-    // Protéger la route
-    protectRoute().catch(error => {
-        console.error('Erreur d\'authentification:', error);
-    });
-</script>
 </head>
 
 <body>
@@ -113,62 +104,6 @@
                     <option value="validatedTask">Tâche validée</option>
                     <option value="misc">Divers</option>
                 </select>
-
-                <label for="visibility">Visibilité:</label>
-                <select id="visibility" name="visibility">
-                    <option value="default">Par défaut</option>
-                    <option value="private">Privé</option>
-                    <option value="pro">Professionnel</option>
-                </select>
-
-                <label for="reminder">Rappel:</label>
-                <select id="reminder" name="reminder">
-                    <option value="">Pas de rappel</option>
-                    <optgroup label="Minutes">
-                        <option value="15m">15 minutes avant</option>
-                        <option value="30m">30 minutes avant</option>
-                        <option value="45m">45 minutes avant</option>
-                    </optgroup>
-                    <optgroup label="Heures">
-                        <option value="1h">1 heure avant</option>
-                        <option value="2h">2 heures avant</option>
-                        <option value="4h">4 heures avant</option>
-                        <option value="6h">6 heures avant</option>
-                        <option value="8h">8 heures avant</option>
-                        <option value="12h">12 heures avant</option>
-                    </optgroup>
-                    <optgroup label="Jours">
-                        <option value="1d">1 jour avant</option>
-                        <option value="2d">2 jours avant</option>
-                        <option value="3d">3 jours avant</option>
-                        <option value="4d">4 jours avant</option>
-                        <option value="5d">5 jours avant</option>
-                        <option value="6d">6 jours avant</option>
-                    </optgroup>
-                    <optgroup label="Semaines">
-                        <option value="1w">1 semaine avant</option>
-                        <option value="2w">2 semaines avant</option>
-                        <option value="3w">3 semaines avant</option>
-                        <option value="4w">4 semaines avant</option>
-                    </optgroup>
-                </select>
-
-                <label for="repeat">Répétition:</label>
-                <select id="repeat" name="repeat">
-                    <option value="">Pas de répétition</option>
-                    <optgroup label="Répétition">
-                        <option value="daily">Tous les jours</option>
-                        <option value="weekly">Toutes les semaines</option>
-                        <option value="biweekly">Toutes les 2 semaines</option>
-                        <option value="monthly">Tous les mois</option>
-                        <option value="yearly">Tous les ans</option>
-                    </optgroup>
-                </select>
-
-                <div id="repeatEndContainer" style="display: none;">
-                    <label for="repeatEnd">Fin de répétition:</label>
-                    <input type="date" id="repeatEnd" name="repeatEnd">
-                </div>
 
                 <button type="submit">Enregistrer</button>
             </form>

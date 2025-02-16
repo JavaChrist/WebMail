@@ -1243,3 +1243,40 @@ label[for="repeatEnd"] {
   border-color: var(--first-color);
   box-shadow: 0 0 0 2px rgba(129, 178, 183, 0.2);
 }
+
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-upload {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.change-photo-btn {
+  background-color: var(--first-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.change-photo-btn:hover {
+  background-color: var(--first-color-dark);
+  transform: scale(1.1);
+}
+
+.photo-login {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
