@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const publicPages = ['/login.html'];
     const currentPath = window.location.pathname;
     let isRedirecting = false;
-    let initialProfilePhoto = null;
 
     // Gestion du changement de photo de profil
     const changePhotoBtn = document.getElementById('changePhotoBtn');

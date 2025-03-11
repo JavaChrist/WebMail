@@ -58,7 +58,7 @@
                     <a href="#" id="logoutBtn" style="display: none;"><i class="bx bx-log-out icon"></i></a>
                 </li>
             </ul>
-            <img src="/assets/image/image-profil.jpg" alt="Photo de profil" class="photo-login">
+            <img src="/assets/image/defaut-contact.png" alt="Photo de profil" class="photo-login">
         </div>
     </header>
 
@@ -97,6 +97,9 @@
                 <label for="time">Créneau horaire:</label>
                 <input type="time" id="time" name="time" required>
 
+                <label for="endTime">Heure de fin:</label>
+                <input type="time" id="endTime" name="endTime" required>
+
                 <label for="category">Rubrique:</label>
                 <select id="category" name="category">
                     <option value="rendezvous">Rendez-vous</option>
@@ -105,10 +108,31 @@
                     <option value="misc">Divers</option>
                 </select>
 
+                <label for="repeat">Répétition:</label>
+                <select id="repeat" name="repeat">
+                    <option value="">Pas de répétition</option>
+                    <option value="daily">Quotidien</option>
+                    <option value="weekly">Hebdomadaire</option>
+                    <option value="biweekly">Bihebdomadaire</option>
+                    <option value="monthly">Mensuel</option>
+                    <option value="yearly">Annuel</option>
+                </select>
+
+                <label for="repeatEnd">Fin de répétition:</label>
+                <input type="date" id="repeatEnd" name="repeatEnd">
+
+                <label for="visibility">Visibilité:</label>
+                <select id="visibility" name="visibility">
+                    <option value="default">Par défaut</option>
+                    <option value="private">Privé</option>
+                    <option value="pro">Professionnel</option>
+                </select>
+
                 <button type="submit">Enregistrer</button>
             </form>
         </div>
     </div>
+
 
     <script type="module" src="script.js"></script>
     <script type="module">

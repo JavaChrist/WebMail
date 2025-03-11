@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const appointmentForm = document.getElementById('appointmentForm');
     const appointmentModal = document.getElementById('appointmentModal');
-    const appointmentList = document.getElementById('appointmentList');
     const closeModal = document.querySelector('.close');
     const calendarView = document.getElementById('calendarView');
     let currentDate = new Date();
@@ -64,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const [year, month, day] = appointment.date.split('-');
             const formattedDate = `${day}/${month}/${year}`;
             const categoryLabel = getCategoryLabel(appointment.category);
-            
+
             const appointmentItem = document.createElement('li');
             appointmentItem.className = `appointment-item visibility-${appointment.visibility}`;
             appointmentItem.innerHTML = `
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     color: ${categoryColors[appointment.category] || '#000'};
                     font-weight: 500;
                 ">
-                    ${appointment.title} - ${formattedDate} ${appointment.time} (${categoryLabel})
+                    ${appointment.title} - ${formattedDate} ${appointment.time} à ${appointment.endTime} (${categoryLabel})
                 </span>
                 <button class="delete-button" data-index="${index}">
                     <i class="bx bx-trash"></i>
@@ -94,17 +93,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 slot.style.backgroundColor = '';
                 slot.style.color = '';
 
-                const slotHour = slot.dataset.hour;
-                const appointment = dayAppointments.find(app =>
-                    parseInt(app.time.split(':')[0]) === parseInt(slotHour)
-                );
+                const slotHour = parseInt(slot.dataset.hour);
 
-                if (appointment) {
-                    slot.textContent = `${appointment.title} (${appointment.time})`;
-                    slot.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
-                    slot.style.color = categoryColors[appointment.category] || '#fff';
-                    slot.style.fontWeight = '500';
-                }
+                dayAppointments.forEach(appointment => {
+                    if (appointment.time && appointment.endTime) {
+                        const startHour = parseInt(appointment.time.split(':')[0]);
+                        const endHour = parseInt(appointment.endTime.split(':')[0]);
+
+                        if (slotHour >= startHour && slotHour < endHour) {
+                            slot.textContent = `${appointment.title} (${appointment.time} - ${appointment.endTime})`;
+                            slot.style.backgroundColor = visibilityColors[appointment.visibility] || visibilityColors.default;
+                            slot.style.color = categoryColors[appointment.category] || '#fff';
+                            slot.style.fontWeight = '500';
+                        }
+                    }
+                });
             });
         }
 
@@ -454,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (appointment.reminder && !appointment.reminderShown) {
                 const reminderTime = new Date(appointment.reminderTime);
                 if (now >= reminderTime) {
+                    console.log(`Notification pour: ${appointment.title}`); // Debugging
                     showNotification(appointment);
                     appointment.reminderShown = true;
                     saveAppointments();
@@ -471,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const formattedDate = `${day}/${month}/${year}`;
                     new Notification("Rappel de rendez-vous", {
                         body: `${appointment.title} - ${formattedDate} ${appointment.time}`,
-                        icon: "/path/to/icon.png" // Ajoutez le chemin vers une icône si vous en avez une
+                        icon: "/assets/icone/favicon.ico"
                     });
                 }
             });
@@ -546,6 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = document.getElementById('title').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
+        const endTime = document.getElementById('endTime').value;
         const category = document.getElementById('category').value;
         const reminder = document.getElementById('reminder').value;
         const repeat = document.getElementById('repeat').value;
@@ -562,17 +567,15 @@ document.addEventListener('DOMContentLoaded', () => {
             title,
             date,
             time,
+            endTime,
             category,
             reminder,
             repeat,
             repeatEnd,
             visibility,
-            reminderShown: false
+            reminderShown: false,
+            reminderTime: reminder ? calculateReminderTime(date, time, reminder).toISOString() : null
         };
-
-        if (reminder) {
-            newAppointment.reminderTime = calculateReminderTime(date, time, reminder).toISOString();
-        }
 
         // Récupérer les rendez-vous existants
         appointments = JSON.parse(localStorage.getItem('appointments')) || [];
@@ -592,18 +595,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Réinitialiser le formulaire et fermer le modal
         appointmentForm.reset();
         appointmentModal.style.display = 'none';
-    });
-
-    // Ajouter l'écouteur d'événements pour afficher/masquer la date de fin de répétition
-    document.getElementById('repeat').addEventListener('change', (e) => {
-        const repeatEndContainer = document.getElementById('repeatEndContainer');
-        if (e.target.value) {
-            repeatEndContainer.style.display = 'block';
-            document.getElementById('repeatEnd').required = true;
-        } else {
-            repeatEndContainer.style.display = 'none';
-            document.getElementById('repeatEnd').required = false;
-        }
     });
 
     // Modifier la fonction de suppression pour gérer les rendez-vous répétés
@@ -652,23 +643,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Gestionnaires pour les changements de vue
-    document.getElementById('dayViewBtn').addEventListener('click', () => {
-        appointments = JSON.parse(localStorage.getItem('appointments')) || []; // Recharger les rendez-vous depuis le localStorage
-        renderDayView(currentDate);
-        loadAppointments(); // Ajout de loadAppointments après le rendu
-    });
+    const dayViewBtn = document.getElementById('dayViewBtn');
+    const weekViewBtn = document.getElementById('weekViewBtn');
+    const monthViewBtn = document.getElementById('monthViewBtn');
 
-    document.getElementById('weekViewBtn').addEventListener('click', () => {
-        appointments = JSON.parse(localStorage.getItem('appointments')) || []; // Recharger les rendez-vous depuis le localStorage
-        renderWeekView(currentDate);
-        loadAppointments(); // Ajout de loadAppointments après le rendu
-    });
+    if (dayViewBtn) {
+        dayViewBtn.addEventListener('click', () => {
+            appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            renderDayView(currentDate);
+            loadAppointments();
+        });
+    }
 
-    document.getElementById('monthViewBtn').addEventListener('click', () => {
-        appointments = JSON.parse(localStorage.getItem('appointments')) || []; // Recharger les rendez-vous depuis le localStorage
-        renderMonthView(currentDate);
-        loadAppointments(); // Ajout de loadAppointments après le rendu
-    });
+    if (weekViewBtn) {
+        weekViewBtn.addEventListener('click', () => {
+            appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            renderWeekView(currentDate);
+            loadAppointments();
+        });
+    }
+
+    if (monthViewBtn) {
+        monthViewBtn.addEventListener('click', () => {
+            appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            renderMonthView(currentDate);
+            loadAppointments();
+        });
+    }
 
     // Initialisation
     addReminderField();
@@ -701,4 +702,11 @@ document.addEventListener('DOMContentLoaded', () => {
     appointmentModal.querySelector('.modal-content').addEventListener('click', (event) => {
         event.stopPropagation();
     });
+
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            appointmentModal.style.display = 'none';
+        });
+    }
+
 });

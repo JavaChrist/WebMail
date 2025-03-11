@@ -10,7 +10,8 @@ import {
     serverTimestamp,
     ref,
     uploadBytes,
-    getDownloadURL
+    getDownloadURL,
+    sendPasswordResetEmail
 } from './firebase-config.js';
 
 // Fonction pour les alertes
@@ -194,8 +195,8 @@ const handleRegister = async (e) => {
 
 // Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // Toggle password visibility
-    const togglePassword = (inputId, eyeId) => {
+    // Renommer la fonction pour éviter le conflit
+    const togglePasswordVisibility = (inputId, eyeId) => {
         const input = document.getElementById(inputId);
         const eye = document.getElementById(eyeId);
         if (eye && input) {
@@ -238,9 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('login-form')?.classList.remove('hidden');
     });
 
-    // Setup password toggles
-    togglePassword('login-pass', 'login-eye');
-    togglePassword('register-pass', 'register-eye');
+    // Utiliser la fonction renommée
+    togglePasswordVisibility('login-pass', 'login-eye');
+    togglePasswordVisibility('register-pass', 'register-eye');
 
     // Setup form submissions
     document.querySelector('.login__form')?.addEventListener('submit', handleLogin);
@@ -261,4 +262,23 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
         }
     });
+
+    const forgotPasswordLink = document.querySelector('.login__forgot');
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const email = prompt("Veuillez entrer votre adresse email pour réinitialiser votre mot de passe :");
+            if (email) {
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    alert('Un email de réinitialisation de mot de passe a été envoyé à votre adresse.');
+                } catch (error) {
+                    console.error('Erreur lors de l\'envoi de l\'email de réinitialisation:', error);
+                    alert('Erreur: ' + error.message);
+                }
+            }
+        });
+    }
 });
