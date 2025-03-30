@@ -282,131 +282,6 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
     }
   };
 
-  // Gestionnaire de raccourcis clavier
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      console.log(
-        "Touche pressée:",
-        e.key,
-        "Ctrl:",
-        e.ctrlKey,
-        "Meta:",
-        e.metaKey
-      );
-
-      // Ne pas déclencher les raccourcis si on est dans un champ de saisie
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-
-      // Vérifier si c'est un raccourci Ctrl
-      if (e.ctrlKey || e.metaKey) {
-        const key = e.key.toLowerCase();
-        console.log("Raccourci Ctrl détecté:", key);
-
-        switch (key) {
-          case "n":
-            console.log("Tentative d'ouverture du modal nouveau contact");
-            e.preventDefault();
-            e.stopPropagation();
-            setSelectedContact(undefined);
-            setIsModalOpen(true);
-            break;
-          case "f":
-            e.preventDefault();
-            e.stopPropagation();
-            document
-              .querySelector<HTMLInputElement>('input[type="text"]')
-              ?.focus();
-            break;
-          case "e":
-            e.preventDefault();
-            e.stopPropagation();
-            exportContacts();
-            break;
-          case "v":
-            e.preventDefault();
-            e.stopPropagation();
-            setViewMode(viewMode === "grid" ? "list" : "grid");
-            break;
-          case "c":
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedContact) {
-              const contactInfo = [
-                `${selectedContact.prenom} ${selectedContact.nom}`,
-                selectedContact.email,
-                selectedContact.telephone,
-                selectedContact.entreprise,
-                [
-                  selectedContact.adresse,
-                  selectedContact.codePostal,
-                  selectedContact.ville,
-                ]
-                  .filter(Boolean)
-                  .join(", "),
-              ]
-                .filter(Boolean)
-                .join("\n");
-              navigator.clipboard.writeText(contactInfo);
-              showToast("Informations du contact copiées", "success");
-            }
-            break;
-          case "m":
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedContact) {
-              const address = [
-                selectedContact.adresse,
-                selectedContact.codePostal,
-                selectedContact.ville,
-              ]
-                .filter(Boolean)
-                .join(", ");
-              if (address) {
-                const query = encodeURIComponent(address);
-                window.open(
-                  `https://www.google.com/maps/search/?api=1&query=${query}`,
-                  "_blank"
-                );
-              }
-            }
-            break;
-          case "p":
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedContact?.telephone) {
-              window.location.href = `tel:${selectedContact.telephone.replace(
-                /\s/g,
-                ""
-              )}`;
-            }
-            break;
-          case "i":
-            e.preventDefault();
-            e.stopPropagation();
-            if (selectedContact?.email) {
-              window.location.href = `mailto:${selectedContact.email}`;
-            }
-            break;
-        }
-      } else if (e.key === "Escape" && isModalOpen) {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsModalOpen(false);
-        setSelectedContact(undefined);
-      }
-    };
-
-    // Utiliser keydown avec capture pour intercepter les événements avant qu'ils n'atteignent le navigateur
-    window.addEventListener("keydown", handleKeyPress, { capture: true });
-    return () =>
-      window.removeEventListener("keydown", handleKeyPress, { capture: true });
-  }, [isModalOpen, viewMode, selectedContact]);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -418,7 +293,7 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
   return (
     <div
       className={`p-4 sm:p-8 ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+        isDarkMode ? "bg-gray-950 text-white" : "bg-gray-100 text-gray-900"
       } min-h-screen`}
     >
       {/* En-tête */}
@@ -461,7 +336,7 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
               <option value="entreprise">Entreprise</option>
               <option value="ville">Ville</option>
             </select>
-            {/* Bouton d'export */}
+
             <button
               onClick={exportContacts}
               className={`p-2 rounded-lg transition-colors ${

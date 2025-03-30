@@ -86,7 +86,7 @@ export default function ContactList({
             onClick={() => onContactSelect(contact)}
             className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-200 ${
               isDarkMode
-                ? "bg-gray-900 hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-700"
+                ? "bg-gray-800 hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-600"
                 : "bg-white hover:bg-gray-50 hover:shadow-lg hover:shadow-gray-200 border border-gray-200"
             } shadow-md`}
           >
@@ -187,7 +187,7 @@ export default function ContactList({
           onClick={() => onContactSelect(contact)}
           className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-200 ${
             isDarkMode
-              ? "bg-gray-900 hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-700"
+              ? "bg-gray-800 hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-600"
               : "bg-white hover:bg-gray-50 hover:shadow-lg hover:shadow-gray-200 border border-gray-200"
           } shadow-md`}
         >
