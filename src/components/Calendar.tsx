@@ -1,6 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Calendar, dateFnsLocalizer, Views, View } from "react-big-calendar";
+import {
+  Calendar,
+  dateFnsLocalizer,
+  Views,
+  View,
+  EventProps,
+} from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -127,6 +133,23 @@ const formats = {
       "dd MMMM yyyy",
       { locale: fr }
     )}`,
+};
+
+// Composant personnalisé pour les événements
+const CustomEventComponent = ({ event }: EventProps<CalendarEvent>) => {
+  const { isDarkMode } = useTheme();
+  const Icon = categories[event.category].icon;
+  return (
+    <div className="flex items-center gap-1 h-full w-full pl-1 event-content">
+      <Icon size={14} className="flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">{event.title}</div>
+        {event.description && (
+          <div className="text-xs opacity-75 truncate">{event.description}</div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default function MyCalendar() {
@@ -288,16 +311,6 @@ export default function MyCalendar() {
 
   // Composant personnalisé pour l'affichage des événements
   const components = {
-    event: ({ event, title }: { event: CalendarEvent; title: string }) => {
-      const Icon = categories[event.category].icon;
-      return (
-        <div className="flex items-center gap-1 h-full w-full pl-1 event-content">
-          <Icon size={14} className="flex-shrink-0" />
-          <span className="truncate">{title}</span>
-        </div>
-      );
-    },
-    // Ajout du composant pour l'agenda
     agenda: {
       event: ({ event }: { event: CalendarEvent }) => {
         const Icon = categories[event.category].icon;
@@ -347,22 +360,22 @@ export default function MyCalendar() {
     <div className="h-full">
       <Calendar
         localizer={localizer}
-        events={events}
+        events={filteredEvents}
         startAccessor="start"
         endAccessor="end"
         style={{ height: "100%" }}
-        view={view}
-        onView={setView}
+        messages={messages}
+        culture="fr"
+        formats={formats}
+        defaultView={view}
+        onView={handleViewChange}
         date={date}
         onNavigate={setDate}
-        messages={messages}
-        formats={formats}
-        selectable
         onSelectSlot={handleSelect}
         onSelectEvent={handleEventClick}
         eventPropGetter={eventPropGetter}
         components={{
-          event: CustomEvent,
+          event: CustomEventComponent,
         }}
         className={`${isDarkMode ? "dark" : ""}`}
       />
