@@ -270,7 +270,7 @@ export default function ComposeModal({
                   <Editor
                     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                     value={content}
-                    onEditorChange={(content) => setContent(content)}
+                    onEditorChange={(content: string) => setContent(content)}
                     init={{
                       height: "100%",
                       menubar: false,
