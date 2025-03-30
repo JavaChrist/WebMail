@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import {
   Inbox,
@@ -16,6 +16,7 @@ import {
   Folder,
   MoreVertical,
   ChevronDown,
+  Move,
 } from "lucide-react";
 import {
   collection,
@@ -98,60 +99,14 @@ function EmailContent() {
   const [isFoldersOpen, setIsFoldersOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    emailId: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      loadEmailAccount();
-      loadEmails();
-      loadCustomFolders();
-      syncEmails();
-      const syncInterval = setInterval(syncEmails, 5 * 60 * 1000);
-      return () => clearInterval(syncInterval);
-    });
-
-    return () => unsubscribe();
-  }, [router, selectedFolder]);
-
-  useEffect(() => {
-    const emailId = searchParams.get("emailId");
-    if (emailId) {
-      const email = emails.find((e) => e.id === emailId);
-      if (email) {
-        handleEmailClick(email);
-      }
-    }
-  }, [searchParams, emails]);
-
-  const loadEmailAccount = async () => {
-    if (!auth.currentUser) return;
-
-    try {
-      const emailAccountsRef = collection(db, "emailAccounts");
-      const q = query(
-        emailAccountsRef,
-        where("userId", "==", auth.currentUser.uid)
-      );
-
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const account = doc.data() as EmailAccount;
-        setSelectedAccount({
-          id: doc.id,
-          email: account.email,
-          name: account.name,
-        });
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement du compte email:", error);
-    }
-  };
-
-  const loadEmails = async () => {
+  const loadEmails = useCallback(async () => {
     if (!auth.currentUser) return;
 
     setIsLoading(true);
@@ -176,6 +131,121 @@ function EmailContent() {
       console.error("Erreur lors du chargement des emails:", error);
     } finally {
       setIsLoading(false);
+    }
+  }, [selectedFolder]);
+
+  const syncEmails = useCallback(async () => {
+    if (!auth.currentUser || !selectedAccount) {
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const response = await fetch("/api/email/fetch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: auth.currentUser.uid,
+          accountId: selectedAccount.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erreur lors de la synchronisation");
+      }
+
+      await loadEmails();
+      showToastMessage("Synchronisation réussie", true);
+    } catch (error) {
+      console.error("Erreur détaillée lors de la synchronisation:", error);
+      showToastMessage(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de la synchronisation des emails",
+        false
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [selectedAccount, loadEmails]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      await loadEmailAccount();
+      await loadEmails();
+      await loadCustomFolders();
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
+    if (!selectedAccount) return;
+
+    const syncInterval = setInterval(() => {
+      syncEmails();
+    }, 5 * 60 * 1000);
+
+    // Synchronisation initiale
+    syncEmails();
+
+    return () => clearInterval(syncInterval);
+  }, [selectedAccount]);
+
+  useEffect(() => {
+    if (auth.currentUser) {
+      loadEmails();
+    }
+  }, [selectedFolder]);
+
+  useEffect(() => {
+    const emailId = searchParams.get("emailId");
+    if (emailId) {
+      const email = emails.find((e) => e.id === emailId);
+      if (email) {
+        handleEmailClick(email);
+      }
+    }
+  }, [searchParams, emails]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const loadEmailAccount = async () => {
+    if (!auth.currentUser) return;
+
+    try {
+      const emailAccountsRef = collection(db, "emailAccounts");
+      const q = query(
+        emailAccountsRef,
+        where("userId", "==", auth.currentUser.uid)
+      );
+
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        const account = doc.data() as EmailAccount;
+        setSelectedAccount({
+          id: doc.id,
+          email: account.email,
+          name: account.name,
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement du compte email:", error);
     }
   };
 
@@ -251,8 +321,7 @@ function EmailContent() {
       }
 
       // Afficher le toast de succès
-      setToastMessage("Email envoyé avec succès");
-      setShowToast(true);
+      showToastMessage("Email envoyé avec succès", true);
 
       // Mettre à jour la liste si on est dans le dossier envoyés
       if (selectedFolder === "sent") {
@@ -380,12 +449,10 @@ function EmailContent() {
       setCustomFolders([...customFolders, newFolder]);
       setNewFolderName("");
       setIsCreateFolderOpen(false);
-      setToastMessage("Dossier créé avec succès");
-      setShowToast(true);
+      showToastMessage("Dossier créé avec succès", true);
     } catch (error) {
       console.error("Erreur lors de la création du dossier:", error);
-      setToastMessage("Erreur lors de la création du dossier");
-      setShowToast(true);
+      showToastMessage("Erreur lors de la création du dossier", false);
     }
   };
 
@@ -413,50 +480,12 @@ function EmailContent() {
     }
   };
 
-  const syncEmails = async () => {
-    if (!auth.currentUser) {
-      setToastMessage("Vous devez être connecté pour synchroniser");
-      setShowToast(true);
-      return;
-    }
-    if (!selectedAccount) {
-      setToastMessage("Veuillez configurer un compte email pour synchroniser");
-      setShowToast(true);
-      return;
-    }
-
-    setIsSyncing(true);
-    try {
-      const response = await fetch("/api/email/fetch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: auth.currentUser.uid,
-          accountId: selectedAccount.id,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erreur lors de la synchronisation");
-      }
-
-      await loadEmails();
-      setToastMessage("Synchronisation réussie");
-      setShowToast(true);
-    } catch (error) {
-      console.error("Erreur détaillée lors de la synchronisation:", error);
-      setToastMessage(
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la synchronisation des emails"
-      );
-      setShowToast(true);
-    } finally {
-      setIsSyncing(false);
-    }
+  const showToastMessage = (message: string, isSuccess: boolean = true) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
   };
 
   const handleSelectEmail = (
@@ -497,12 +526,10 @@ function EmailContent() {
       // Mettre à jour l'état local
       setEmails(emails.filter((email) => !selectedEmails.has(email.id)));
       setSelectedEmails(new Set());
-      setToastMessage(`Emails déplacés vers ${targetFolder}`);
-      setShowToast(true);
+      showToastMessage(`Emails déplacés vers ${targetFolder}`, true);
     } catch (error) {
       console.error("Erreur lors du déplacement des emails:", error);
-      setToastMessage("Erreur lors du déplacement des emails");
-      setShowToast(true);
+      showToastMessage("Erreur lors du déplacement des emails", false);
     }
   };
 
@@ -535,24 +562,51 @@ function EmailContent() {
       // Mettre à jour l'état local
       setEmails(emails.filter((email) => email.id !== emailId));
       setSelectedEmail(null);
-      setToastMessage(`Email déplacé vers ${targetFolder}`);
-      setShowToast(true);
+      showToastMessage(`Email déplacé vers ${targetFolder}`, true);
     } catch (error) {
       console.error("Erreur lors du déplacement de l'email:", error);
-      setToastMessage("Erreur lors du déplacement de l'email");
-      setShowToast(true);
+      showToastMessage("Erreur lors du déplacement de l'email", false);
+    }
+  };
+
+  const handleContextMenu = (e: React.TouchEvent, emailId: string) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    setContextMenu({
+      emailId,
+      x: touch.clientX,
+      y: touch.clientY,
+    });
+  };
+
+  const handleMoveEmail = async (targetFolder: Folder) => {
+    if (!contextMenu) return;
+
+    try {
+      const emailRef = doc(db, "emails", contextMenu.emailId);
+      await updateDoc(emailRef, {
+        folder: targetFolder,
+      });
+
+      setEmails(emails.filter((email) => email.id !== contextMenu.emailId));
+      setSelectedEmail(null);
+      setContextMenu(null);
+      showToastMessage(`Email déplacé vers ${targetFolder}`, true);
+    } catch (error) {
+      console.error("Erreur lors du déplacement de l'email:", error);
+      showToastMessage("Erreur lors du déplacement de l'email", false);
     }
   };
 
   return (
     <div
-      className={`h-screen flex ${
+      className={`min-h-screen h-full flex ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
       }`}
     >
       {/* Panneau latéral des dossiers */}
       <div
-        className={`w-64 p-4 border-r ${
+        className={`w-64 p-4 border-r min-h-screen h-full overflow-y-auto sticky top-0 ${
           isDarkMode ? "border-gray-700" : "border-gray-200"
         }`}
       >
@@ -703,7 +757,7 @@ function EmailContent() {
       </div>
 
       {/* Zone principale */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen h-full overflow-hidden">
         <div className="p-4 border-b flex justify-between items-center">
           <div className="flex items-center gap-2">
             {selectedEmails.size > 0 && (
@@ -791,22 +845,23 @@ function EmailContent() {
             </div>
 
             {/* Liste des emails */}
-            <div className="flex-1 overflow-auto">
-              {isLoading ? (
+            <div className="flex-1 overflow-y-auto">
+              {emails.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : emails.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                  <div className="text-lg">Aucun email dans ce dossier</div>
+                  <p className="text-gray-500">Aucun email</p>
                 </div>
               ) : (
                 <div className="divide-y">
                   {emails.map((email) => (
                     <div
                       key={email.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, email.id)}
+                      draggable={!isMobile}
+                      onDragStart={(e) =>
+                        !isMobile && handleDragStart(e, email.id)
+                      }
+                      onTouchStart={(e) =>
+                        isMobile && handleContextMenu(e, email.id)
+                      }
                       onClick={() => handleEmailClick(email)}
                       className={`w-full p-4 text-left flex items-start gap-4 transition-colors cursor-pointer ${
                         !email.read ? "font-semibold" : ""
@@ -822,7 +877,7 @@ function EmailContent() {
                           : ""
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-5">
+                      <div className="flex flex-col items-center gap-2">
                         <div
                           onClick={(e) => {
                             e.stopPropagation();
@@ -844,10 +899,10 @@ function EmailContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="truncate">
+                          <span className="truncate text-base sm:text-base">
                             {email.from.replace(/['"]/g, "")}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm sm:text-base text-gray-500 ml-4">
                             {new Date(email.timestamp).toLocaleDateString(
                               "fr-FR",
                               {
@@ -860,7 +915,9 @@ function EmailContent() {
                             )}
                           </span>
                         </div>
-                        <div className="truncate">{email.subject}</div>
+                        <div className="truncate text-base sm:text-base">
+                          {email.subject}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -871,70 +928,92 @@ function EmailContent() {
         )}
       </div>
 
-      <ComposeModal
-        isOpen={isComposeOpen}
-        onClose={() => {
-          setIsComposeOpen(false);
-          setReplyData(null);
-        }}
-        onSend={handleSendEmail}
-        initialData={replyData}
-        accountId={selectedAccount?.id}
-      />
+      {/* Modales */}
+      {isComposeOpen && (
+        <ComposeModal
+          isOpen={isComposeOpen}
+          onClose={() => setIsComposeOpen(false)}
+          initialData={replyData}
+          onSend={handleSendEmail}
+        />
+      )}
 
-      <EmailConfig
-        isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
-      />
+      {isConfigOpen && (
+        <EmailConfig
+          isOpen={isConfigOpen}
+          onClose={() => setIsConfigOpen(false)}
+        />
+      )}
 
-      <Toast.Provider>
-        <Toast.Root
-          open={showToast}
-          onOpenChange={setShowToast}
-          className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
-            isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-          }`}
-        >
-          <Toast.Title className="font-medium">{toastMessage}</Toast.Title>
-          <Toast.Close className="absolute top-2 right-2">
-            <X size={16} />
-          </Toast.Close>
-        </Toast.Root>
-        <Toast.Viewport />
-      </Toast.Provider>
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div
+            className={`px-4 py-2 rounded-lg shadow-lg ${
+              toastMessage.includes("succès") ||
+              toastMessage.includes("Synchronisation réussie")
+                ? "bg-blue-500"
+                : "bg-red-500"
+            } text-white transition-opacity duration-300`}
+          >
+            {toastMessage}
+          </div>
+        </div>
+      )}
 
       {/* Modal de création de dossier */}
       {isCreateFolderOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div
-            className={`p-6 rounded-lg ${
+            className={`p-4 md:p-6 rounded-lg w-full max-w-md ${
               isDarkMode ? "bg-gray-800" : "bg-white"
-            } w-96`}
+            }`}
           >
-            <h2 className="text-xl font-bold mb-4">Créer un nouveau dossier</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg md:text-xl font-bold">
+                Créer un nouveau dossier
+              </h2>
+              <button
+                onClick={() => {
+                  setIsCreateFolderOpen(false);
+                  setNewFolderName("");
+                }}
+                className={`${
+                  isDarkMode
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                <X size={24} />
+              </button>
+            </div>
             <input
               type="text"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder="Nom du dossier"
-              className={`w-full p-2 rounded-lg mb-4 ${
+              className={`w-full p-3 rounded-lg mb-4 ${
                 isDarkMode
-                  ? "bg-gray-700 text-white"
-                  : "bg-gray-100 text-gray-900"
-              }`}
+                  ? "bg-gray-700 text-white placeholder-gray-400"
+                  : "bg-gray-100 text-gray-900 placeholder-gray-500"
+              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleCreateFolder();
                 }
               }}
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 justify-end">
               <button
                 onClick={() => {
                   setIsCreateFolderOpen(false);
                   setNewFolderName("");
                 }}
-                className="px-4 py-2 rounded-lg hover:bg-gray-200"
+                className={`px-4 py-2 rounded-lg ${
+                  isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
               >
                 Annuler
               </button>
@@ -950,6 +1029,43 @@ function EmailContent() {
                 Créer
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Menu contextuel mobile */}
+      {contextMenu && (
+        <div
+          className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div className="text-sm font-medium mb-2 px-2">Déplacer vers</div>
+          <div className="space-y-1">
+            <button
+              onClick={() => handleMoveEmail("inbox")}
+              className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Inbox size={16} />
+              Boîte de réception
+            </button>
+            <button
+              onClick={() => handleMoveEmail("archive")}
+              className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Archive size={16} />
+              Archive
+            </button>
+            <button
+              onClick={() => handleMoveEmail("trash")}
+              className="w-full text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Trash2 size={16} />
+              Corbeille
+            </button>
           </div>
         </div>
       )}

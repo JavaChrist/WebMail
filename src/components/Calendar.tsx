@@ -54,7 +54,7 @@ const locales = { fr };
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 0 }),
   getDay,
   locales,
 });
@@ -344,222 +344,40 @@ export default function MyCalendar() {
   };
 
   return (
-    <div
-      className={`p-4 ${isDarkMode ? "bg-gray-900" : "bg-white"} text-${
-        isDarkMode ? "white" : "black"
-      } rounded-lg shadow-lg min-h-screen`}
-    >
-      <style jsx global>{`
-        .event-item {
-          position: relative;
-          overflow: visible !important;
-          transform-origin: center;
-          transition: all 0.2s ease-in-out;
-        }
-        .event-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-          z-index: 1000 !important;
-        }
-        .event-content {
-          overflow: visible !important;
-        }
-        /* Empêcher le débordement du conteneur du calendrier */
-        .rbc-calendar {
-          overflow: hidden;
-        }
-        /* Styles pour le thème clair */
-        ${!isDarkMode
-          ? `
-          .rbc-calendar {
-            background-color: white;
-            color: #1f2937;
-          }
-          .rbc-header {
-            background-color: #f3f4f6;
-            color: #1f2937;
-          }
-          .rbc-time-view {
-            background-color: white;
-          }
-          .rbc-time-content {
-            background-color: white;
-          }
-          .rbc-time-slot {
-            color: #1f2937;
-          }
-          .rbc-time-gutter {
-            background-color: #f3f4f6;
-            color: #1f2937;
-          }
-          .rbc-today {
-            background-color: #f3f4f6;
-          }
-          .rbc-off-range {
-            background-color: #f9fafb;
-            color: #9ca3af;
-          }
-          .rbc-off-range-bg {
-            background-color: #f9fafb;
-          }
-          .rbc-toolbar button {
-            background-color: white;
-            color: #1f2937;
-            border-color: #e5e7eb;
-          }
-          .rbc-toolbar button:hover {
-            background-color: #f3f4f6;
-          }
-          .rbc-toolbar button.rbc-active {
-            background-color: #3b82f6;
-            color: white;
-          }
-          .rbc-toolbar-label {
-            color: #1f2937;
-          }
-          .rbc-agenda-view table.rbc-agenda-table {
-            background-color: white;
-            color: #1f2937;
-          }
-          .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
-            background-color: #f3f4f6;
-            color: #1f2937;
-          }
-          .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-            color: #1f2937;
-          }
-          .rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
-            background-color: #f3f4f6;
-          }
-        `
-          : ""}
-        /* Styles pour le thème sombre */
-        ${isDarkMode
-          ? `
-          .rbc-calendar {
-            background-color: #1f2937;
-            color: white;
-          }
-          .rbc-header {
-            background-color: #111827;
-            color: white;
-          }
-          .rbc-time-view {
-            background-color: #1f2937;
-          }
-          .rbc-time-content {
-            background-color: #1f2937;
-          }
-          .rbc-time-slot {
-            color: white;
-          }
-          .rbc-time-gutter {
-            background-color: #111827;
-            color: white;
-          }
-          .rbc-today {
-            background-color: #374151;
-          }
-          .rbc-off-range {
-            background-color: #111827;
-            color: #6b7280;
-          }
-          .rbc-off-range-bg {
-            background-color: #111827;
-          }
-          .rbc-toolbar button {
-            background-color: #374151;
-            color: white;
-            border-color: #4b5563;
-          }
-          .rbc-toolbar button:hover {
-            background-color: #4b5563;
-          }
-          .rbc-toolbar button.rbc-active {
-            background-color: #3b82f6;
-            color: white;
-          }
-          .rbc-toolbar-label {
-            color: white;
-          }
-          .rbc-agenda-view table.rbc-agenda-table {
-            background-color: #1f2937;
-            color: white;
-          }
-          .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
-            background-color: #111827;
-            color: white;
-          }
-          .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-            color: white;
-          }
-          .rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
-            background-color: #374151;
-          }
-        `
-          : ""}
-      `}</style>
-      <h2 className="text-xl font-bold mb-4 text-center">
-        {format(date, "EEEE d MMMM yyyy", { locale: fr })}
-      </h2>
-
-      {/* Barre d'outils */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {Object.entries(categories).map(([key, { icon: Icon, label }]) => (
-          <button
-            key={key}
-            onClick={() => toggleCategory(key as keyof typeof categories)}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              selectedCategories.has(key as keyof typeof categories)
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-700 hover:bg-gray-600"
-            }`}
-          >
-            <Icon size={18} />
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
-
+    <div className="h-full">
       <Calendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        style={{ height: "100%" }}
+        view={view}
+        onView={setView}
+        date={date}
+        onNavigate={setDate}
+        messages={messages}
+        formats={formats}
         selectable
         onSelectSlot={handleSelect}
         onSelectEvent={handleEventClick}
-        localizer={localizer}
-        date={date}
-        events={filteredEvents}
-        startAccessor="start"
-        endAccessor="end"
-        views={["month", "week", "day", "agenda"]}
-        view={view}
-        messages={messages}
-        formats={formats}
-        onView={handleViewChange}
-        onNavigate={(newDate) => setDate(newDate)}
         eventPropGetter={eventPropGetter}
-        components={components}
-        defaultView={Views.WEEK}
-        style={{
-          height: "calc(100vh - 280px)",
-          backgroundColor: "white",
-          color: "black",
-          borderRadius: "8px",
-          padding: "10px",
+        components={{
+          event: CustomEvent,
         }}
+        className={`${isDarkMode ? "dark" : ""}`}
       />
-
-      {(selectedSlot || selectedEvent) && (
+      {isModalOpen && (
         <EventModal
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
-            setSelectedSlot(null);
             setSelectedEvent(null);
+            setSelectedSlot(null);
           }}
+          event={selectedEvent}
+          slot={selectedSlot}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
-          selectedEvent={selectedEvent || undefined}
-          selectedSlot={selectedSlot || undefined}
         />
       )}
     </div>

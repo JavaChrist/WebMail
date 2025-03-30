@@ -53,14 +53,18 @@ export default function Sidebar() {
       {/* Bouton pour ouvrir/fermer le menu sur mobile */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        className="fixed top-4 left-4 z-[100] lg:hidden bg-gray-800 p-2 rounded-lg shadow-lg"
       >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
+        {isOpen ? (
+          <X size={24} className="text-white" />
+        ) : (
+          <Menu size={24} className="text-white" />
+        )}
       </button>
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 p-4 z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full bg-gray-800 text-white w-64 p-4 z-[90] transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >

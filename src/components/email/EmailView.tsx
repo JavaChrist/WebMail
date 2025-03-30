@@ -162,7 +162,7 @@ export default function EmailView({
       </div>
 
       {/* Contenu de l'email */}
-      <div className="flex-1 p-4 overflow-auto">
+      <div className="flex-1 p-4 overflow-y-auto">
         {/* Pièces jointes */}
         {email.attachments && email.attachments.length > 0 && (
           <div

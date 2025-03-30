@@ -240,131 +240,158 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <HeadlessDialog.Panel
-          className={`w-full max-w-2xl p-6 rounded-lg shadow-xl ${
+          className={`w-full max-w-2xl p-4 md:p-6 rounded-lg shadow-xl ${
             isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
           }`}
         >
           <div className="flex items-center justify-between mb-4">
-            <HeadlessDialog.Title className="text-xl font-bold">
+            <HeadlessDialog.Title className="text-lg md:text-xl font-bold">
               Configuration du compte email
             </HeadlessDialog.Title>
             <button
               onClick={onClose}
-              className={`p-1 rounded-lg transition-colors ${
-                isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+              className={`${
+                isDarkMode
+                  ? "text-gray-400 hover:text-white"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500 rounded-lg text-red-500">
-                {error}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={settings.email}
+                  onChange={(e) =>
+                    setSettings({ ...settings, email: e.target.value })
+                  }
+                  className={`w-full px-3 py-2 rounded-lg border ${
+                    isDarkMode
+                      ? "bg-gray-700 text-white border-gray-600"
+                      : "bg-white text-gray-900 border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  required
+                />
               </div>
-            )}
 
-            {success && (
-              <div className="p-3 bg-green-500/10 border border-green-500 rounded-lg text-green-500">
-                {success}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Paramètres du compte</h3>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block mb-1">Adresse email</label>
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Mot de passe
+                </label>
+                <div className="relative">
                   <input
-                    type="email"
-                    value={settings.email}
+                    type={showPassword ? "text" : "password"}
+                    value={settings.emailPassword}
                     onChange={(e) =>
-                      setSettings({ ...settings, email: e.target.value })
+                      setSettings({
+                        ...settings,
+                        emailPassword: e.target.value,
+                      })
                     }
-                    className={`w-full px-4 py-2 rounded-lg ${
+                    className={`w-full px-3 py-2 rounded-lg border ${
                       isDarkMode
-                        ? "bg-gray-700 text-white placeholder-gray-400"
-                        : "bg-gray-50 text-gray-900 placeholder-gray-500"
+                        ? "bg-gray-700 text-white border-gray-600"
+                        : "bg-white text-gray-900 border-gray-300"
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     required
-                    autoComplete="off"
                   />
-                </div>
-                <div>
-                  <label className="block mb-1">
-                    Mot de passe du compte email
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={settings.emailPassword}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          emailPassword: e.target.value,
-                        })
-                      }
-                      className={`w-full px-4 py-2 rounded-lg ${
-                        isDarkMode
-                          ? "bg-gray-700 text-white placeholder-gray-400"
-                          : "bg-gray-50 text-gray-900 placeholder-gray-500"
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                      required
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors ${
-                        isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"
-                      }`}
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Paramètres SMTP (envoi)</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Serveur SMTP</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Serveur SMTP
+                  </label>
                   <input
                     type="text"
                     value={settings.smtpHost}
                     onChange={(e) =>
                       setSettings({ ...settings, smtpHost: e.target.value })
                     }
-                    className={`w-full px-4 py-2 rounded-lg ${
+                    className={`w-full px-3 py-2 rounded-lg border ${
                       isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
+                        ? "bg-gray-700 text-white border-gray-600"
+                        : "bg-white text-gray-900 border-gray-300"
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     required
                   />
                 </div>
+
                 <div>
-                  <label className="block mb-1">Port SMTP</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Port SMTP
+                  </label>
                   <input
                     type="number"
                     value={settings.smtpPort}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        smtpPort: parseInt(e.target.value),
+                        smtpPort: Number(e.target.value),
                       })
                     }
-                    className={`w-full px-4 py-2 rounded-lg ${
+                    className={`w-full px-3 py-2 rounded-lg border ${
                       isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
+                        ? "bg-gray-700 text-white border-gray-600"
+                        : "bg-white text-gray-900 border-gray-300"
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     required
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={settings.smtpSecure}
+                  onChange={(e) =>
+                    setSettings({ ...settings, smtpSecure: e.target.checked })
+                  }
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Utiliser SSL/TLS
+                </label>
               </div>
             </div>
 
@@ -372,121 +399,119 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
               <h3 className="text-lg font-semibold">
                 Paramètres IMAP (réception)
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Serveur IMAP</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Serveur IMAP
+                  </label>
                   <input
                     type="text"
                     value={settings.imapHost}
                     onChange={(e) =>
                       setSettings({ ...settings, imapHost: e.target.value })
                     }
-                    className={`w-full px-4 py-2 rounded-lg ${
+                    className={`w-full px-3 py-2 rounded-lg border ${
                       isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
+                        ? "bg-gray-700 text-white border-gray-600"
+                        : "bg-white text-gray-900 border-gray-300"
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     required
                   />
                 </div>
+
                 <div>
-                  <label className="block mb-1">Port IMAP</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Port IMAP
+                  </label>
                   <input
                     type="number"
                     value={settings.imapPort}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        imapPort: parseInt(e.target.value),
+                        imapPort: Number(e.target.value),
                       })
                     }
-                    className={`w-full px-4 py-2 rounded-lg ${
+                    className={`w-full px-3 py-2 rounded-lg border ${
                       isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
+                        ? "bg-gray-700 text-white border-gray-600"
+                        : "bg-white text-gray-900 border-gray-300"
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     required
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Sécurité</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1">SMTP</label>
-                  <input
-                    type="checkbox"
-                    checked={settings.smtpSecure}
-                    onChange={(e) =>
-                      setSettings({ ...settings, smtpSecure: e.target.checked })
-                    }
-                    className={`w-full px-4 py-2 rounded-lg ${
-                      isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1">IMAP</label>
-                  <input
-                    type="checkbox"
-                    checked={settings.imapSecure}
-                    onChange={(e) =>
-                      setSettings({ ...settings, imapSecure: e.target.checked })
-                    }
-                    className={`w-full px-4 py-2 rounded-lg ${
-                      isDarkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-50 text-gray-900"
-                    }`}
-                  />
-                </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={settings.imapSecure}
+                  onChange={(e) =>
+                    setSettings({ ...settings, imapSecure: e.target.checked })
+                  }
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Utiliser SSL/TLS
+                </label>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Test de connexion</h3>
+            {error && (
+              <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+                {success}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
+              <button
+                type="button"
+                onClick={resetToIonosDefaults}
+                className={`px-4 py-2 rounded-lg ${
+                  isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
+              >
+                Réinitialiser
+              </button>
               <button
                 type="button"
                 onClick={testConnection}
-                className={`w-full px-4 py-2 rounded-lg ${
+                disabled={isTesting}
+                className={`px-4 py-2 rounded-lg ${
                   isDarkMode
-                    ? "bg-gray-700 text-white"
-                    : "bg-gray-50 text-gray-900"
-                }`}
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                } disabled:opacity-50`}
               >
                 {isTesting ? "Test en cours..." : "Tester la connexion"}
               </button>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Actions</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="submit"
-                  className={`w-full px-4 py-2 rounded-lg ${
-                    isDarkMode
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-50 text-gray-900"
-                  }`}
-                >
-                  {isSaving ? "Sauvegarder..." : "Sauvegarder"}
-                </button>
-                <button
-                  type="reset"
-                  onClick={resetToIonosDefaults}
-                  className={`w-full px-4 py-2 rounded-lg ${
-                    isDarkMode
-                      ? "bg-gray-700 text-white"
-                      : "bg-gray-50 text-gray-900"
-                  }`}
-                >
-                  Réinitialiser à la configuration par défaut
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isSaving ? "Enregistrement..." : "Enregistrer"}
+              </button>
             </div>
           </form>
         </HeadlessDialog.Panel>

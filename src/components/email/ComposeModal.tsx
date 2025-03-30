@@ -185,9 +185,9 @@ export default function ComposeModal({
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <HeadlessDialog.Panel
-            className={`w-full max-w-5xl ${
+            className={`w-full max-w-5xl h-[90vh] md:h-auto ${
               isDarkMode ? "bg-gray-900" : "bg-white"
-            } rounded-lg shadow-xl`}
+            } rounded-lg shadow-xl flex flex-col`}
           >
             <div
               className={`flex justify-between items-center p-4 border-b ${
@@ -195,7 +195,7 @@ export default function ComposeModal({
               }`}
             >
               <HeadlessDialog.Title
-                className={`text-xl font-semibold ${
+                className={`text-lg md:text-xl font-semibold ${
                   isDarkMode ? "text-white" : "text-gray-900"
                 }`}
               >
@@ -213,8 +213,11 @@ export default function ComposeModal({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4">
-              <div className="space-y-4">
+            <form
+              onSubmit={handleSubmit}
+              className="flex-1 flex flex-col p-4 overflow-hidden"
+            >
+              <div className="space-y-4 flex-1 overflow-y-auto">
                 <div>
                   <label
                     className={`block text-sm font-medium ${
@@ -263,23 +266,14 @@ export default function ComposeModal({
                   />
                 </div>
 
-                <div>
-                  <label
-                    className={`block text-sm font-medium ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    } mb-1`}
-                  >
-                    Message
-                  </label>
+                <div className="flex-1 min-h-[200px]">
                   <Editor
-                    apiKey="70b33lmeqg4gkor74cmflrnzyabu1cn9ft6mrs8dttbjvm3z"
+                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                     value={content}
-                    onEditorChange={(content: string) => setContent(content)}
+                    onEditorChange={(content) => setContent(content)}
                     init={{
-                      height: 300,
-                      menubar: true,
-                      skin: isDarkMode ? "oxide-dark" : "oxide",
-                      content_css: isDarkMode ? "dark" : "default",
+                      height: "100%",
+                      menubar: false,
                       plugins: [
                         "advlist",
                         "autolink",
@@ -296,140 +290,62 @@ export default function ComposeModal({
                         "insertdatetime",
                         "media",
                         "table",
+                        "code",
                         "help",
                         "wordcount",
                       ],
                       toolbar:
-                        "undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help",
-                      content_style:
-                        "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-                      promotion: false,
-                      branding: false,
-                      icons: "default",
+                        "undo redo | blocks | " +
+                        "bold italic forecolor | alignleft aligncenter " +
+                        "alignright alignjustify | bullist numlist outdent indent | " +
+                        "removeformat | help",
+                      content_style: isDarkMode
+                        ? "body { font-family:Helvetica,Arial,sans-serif; font-size:14px; color: white; }"
+                        : "body { font-family:Helvetica,Arial,sans-serif; font-size:14px; }",
+                      skin: isDarkMode ? "oxide-dark" : "oxide",
+                      content_css: isDarkMode ? "dark" : "default",
                     }}
                   />
                 </div>
+              </div>
 
-                {/* Signature */}
-                <div className="space-y-2">
-                  <label
-                    className={`block text-sm font-medium ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
+              <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                      isDarkMode
+                        ? "bg-gray-800 hover:bg-gray-700"
+                        : "bg-gray-100 hover:bg-gray-200"
                     }`}
                   >
-                    Signature
-                  </label>
-                  <textarea
-                    value={signature}
-                    onChange={(e) => setSignature(e.target.value)}
-                    placeholder="Votre signature..."
-                    className={`w-full p-2 rounded-lg ${
-                      isDarkMode
-                        ? "bg-gray-800 text-white"
-                        : "bg-white text-gray-900"
-                    } border ${
-                      isDarkMode ? "border-gray-700" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                    rows={3}
-                  />
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleSignatureImageChange}
-                      className="hidden"
-                      id="signature-image"
-                    />
-                    <label
-                      htmlFor="signature-image"
-                      className={`px-4 py-2 rounded-lg cursor-pointer ${
-                        isDarkMode
-                          ? "bg-gray-800 hover:bg-gray-700"
-                          : "bg-gray-100 hover:bg-gray-200"
-                      }`}
-                    >
-                      Ajouter une image
-                    </label>
-                    {signatureImage && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSignatureImage(null);
-                          setSignatureImagePreview("");
-                        }}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        Supprimer l'image
-                      </button>
-                    )}
-                  </div>
-                  {signatureImagePreview && (
-                    <div className="mt-2">
-                      <img
-                        src={signatureImagePreview}
-                        alt="Aperçu de la signature"
-                        className="max-h-20 object-contain"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    className={`block text-sm font-medium ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    } mb-1`}
-                  >
-                    Pièces jointes
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      multiple
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`px-3 py-2 ${
-                        isDarkMode
-                          ? "bg-blue-600 text-white"
-                          : "bg-blue-500 text-white"
-                      } rounded-lg hover:bg-${
-                        isDarkMode ? "blue-700" : "blue-600"
-                      } transition-colors flex items-center space-x-2`}
-                    >
-                      <Paperclip size={16} />
-                      <span>Ajouter des pièces jointes</span>
-                    </button>
-                  </div>
-
+                    <Paperclip size={20} />
+                    <span className="hidden sm:inline">Pièces jointes</span>
+                  </button>
                   {attachments.length > 0 && (
-                    <div className="mt-2 space-y-2">
-                      {attachments.map((file: File, index: number) => (
+                    <div className="flex flex-wrap gap-2">
+                      {attachments.map((file, index) => (
                         <div
                           key={index}
-                          className={`flex items-center justify-between ${
-                            isDarkMode ? "bg-gray-800" : "bg-gray-200"
-                          } p-2 rounded-lg`}
+                          className={`flex items-center gap-2 px-2 py-1 rounded-lg ${
+                            isDarkMode ? "bg-gray-800" : "bg-gray-100"
+                          }`}
                         >
-                          <span
-                            className={`text-sm ${
-                              isDarkMode ? "text-gray-300" : "text-gray-700"
-                            } truncate`}
-                          >
+                          <span className="text-sm truncate max-w-[150px]">
                             {file.name}
                           </span>
                           <button
                             type="button"
                             onClick={() => removeAttachment(index)}
-                            className={`${
-                              isDarkMode
-                                ? "text-gray-400 hover:text-red-500"
-                                : "text-gray-500 hover:text-red-500"
-                            }`}
+                            className="text-red-500 hover:text-red-600"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -438,15 +354,14 @@ export default function ComposeModal({
                     </div>
                   )}
                 </div>
-
-                <div className="flex justify-end space-x-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={onClose}
-                    className={`px-4 py-2 ${
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg ${
                       isDarkMode
-                        ? "text-gray-300 hover:text-white"
-                        : "text-gray-500 hover:text-gray-900"
+                        ? "bg-gray-800 hover:bg-gray-700"
+                        : "bg-gray-100 hover:bg-gray-200"
                     }`}
                   >
                     Annuler
@@ -454,13 +369,7 @@ export default function ComposeModal({
                   <button
                     type="submit"
                     disabled={isSending}
-                    className={`px-4 py-2 ${
-                      isDarkMode
-                        ? "bg-blue-600 text-white"
-                        : "bg-blue-500 text-white"
-                    } rounded-lg hover:bg-${
-                      isDarkMode ? "blue-700" : "blue-600"
-                    } transition-colors disabled:opacity-50`}
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isSending ? "Envoi en cours..." : "Envoyer"}
                   </button>

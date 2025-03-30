@@ -407,28 +407,6 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
       window.removeEventListener("keydown", handleKeyPress, { capture: true });
   }, [isModalOpen, viewMode, selectedContact]);
 
-  // Ajouter un composant pour afficher les raccourcis disponibles
-  const ShortcutsHelp = () => (
-    <div
-      className={`fixed bottom-4 left-[300px] p-4 rounded-lg shadow-lg ${
-        isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-      }`}
-    >
-      <h3 className="text-sm font-medium mb-2">Raccourcis clavier</h3>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div>Ctrl + N : Nouveau contact</div>
-        <div>Ctrl + F : Rechercher</div>
-        <div>Ctrl + E : Exporter</div>
-        <div>Ctrl + V : Changer de vue</div>
-        <div>Ctrl + C : Copier les infos</div>
-        <div>Ctrl + M : Ouvrir Maps</div>
-        <div>Ctrl + P : Appeler</div>
-        <div>Ctrl + I : Envoyer email</div>
-        <div>Échap : Fermer modal</div>
-      </div>
-    </div>
-  );
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -439,15 +417,15 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
 
   return (
     <div
-      className={`p-8 ${
+      className={`p-4 sm:p-8 ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
       } min-h-screen`}
     >
       {/* En-tête */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <h1 className="text-2xl font-bold">Contacts</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
               className={`p-2 rounded-lg transition-colors ${
@@ -562,17 +540,14 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
       {/* Modal de contact */}
       <ContactModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedContact(undefined);
-        }}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSaveContact}
         onDelete={handleDeleteContact}
         selectedContact={selectedContact}
       />
 
       {/* Toasts */}
-      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+      <div className="fixed bottom-4 right-4 space-y-2">
         {toasts.map((toast) => (
           <div
             key={toast.id}
@@ -586,8 +561,6 @@ ${contact.entreprise ? `ORG:${contact.entreprise}\n` : ""}${
           </div>
         ))}
       </div>
-
-      <ShortcutsHelp />
     </div>
   );
 }

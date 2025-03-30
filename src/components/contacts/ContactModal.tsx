@@ -129,22 +129,22 @@ export default function ContactModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-4 md:p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex justify-between items-center"
+                  className="text-lg md:text-xl font-medium leading-6 text-gray-900 dark:text-white flex justify-between items-center"
                 >
                   {selectedContact ? "Modifier le contact" : "Nouveau contact"}
                   <button
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                   >
-                    <X size={20} />
+                    <X size={24} />
                   </button>
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Nom *
@@ -174,7 +174,7 @@ export default function ContactModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email
@@ -231,7 +231,7 @@ export default function ContactModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Code postal
@@ -269,19 +269,16 @@ export default function ContactModal({
                       onChange={(e) =>
                         setContact({
                           ...contact,
-                          categorie: e.target
-                            .value as keyof typeof contactCategories,
+                          categorie: e.target.value as ContactCategory,
                         })
                       }
                       className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
-                      {Object.entries(contactCategories).map(
-                        ([key, { label }]) => (
-                          <option key={key} value={key}>
-                            {label}
-                          </option>
-                        )
-                      )}
+                      {Object.entries(contactCategories).map(([key, value]) => (
+                        <option key={key} value={key}>
+                          {value.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -299,12 +296,12 @@ export default function ContactModal({
                     />
                   </div>
 
-                  <div className="mt-6 flex justify-end space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-end mt-6">
                     {selectedContact && onDelete && (
                       <button
                         type="button"
-                        onClick={() => onDelete(contact)}
-                        className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                        onClick={() => onDelete(selectedContact)}
+                        className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                       >
                         Supprimer
                       </button>
@@ -312,14 +309,13 @@ export default function ContactModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                     >
                       Annuler
                     </button>
                     <button
                       type="submit"
-                      onClick={() => console.log("Bouton Créer cliqué")}
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       {selectedContact ? "Mettre à jour" : "Créer"}
                     </button>
