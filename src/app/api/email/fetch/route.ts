@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import imaps from "imap-simple";
 import { simpleParser } from "mailparser";
 import { adminDb } from "@/config/firebase-admin";
 import CryptoJS from "crypto-js";
@@ -97,7 +96,6 @@ export async function POST(request: Request) {
     console.log("✅ Compte email récupéré:", {
       email: emailAccount?.email,
       hasPassword: !!emailAccount?.password,
-      hasImap: !!emailAccount?.imapServer,
     });
 
     if (!emailAccount?.email || !emailAccount?.password) {
@@ -115,78 +113,7 @@ export async function POST(request: Request) {
     const password = await decryptPassword(emailAccount.password);
     console.log("✅ Mot de passe déchiffré avec succès");
 
-    // Configuration IMAP
-    const imapConfig = {
-      imap: {
-        user: emailAccount.email,
-        password: password,
-        host: emailAccount.imapServer,
-        port: emailAccount.imapPort,
-        tls: emailAccount.useSSL,
-        tlsOptions: { rejectUnauthorized: false },
-      },
-    };
-
-    console.log("📨 Configuration IMAP:", {
-      user: imapConfig.imap.user,
-      host: imapConfig.imap.host,
-      port: imapConfig.imap.port,
-      tls: imapConfig.imap.tls,
-    });
-
-    // Fonction pour récupérer les emails
-    const fetchEmails = async () => {
-      try {
-        const connection = await imaps.connect(imapConfig);
-        await connection.openBox("INBOX");
-
-        const date = new Date();
-        date.setDate(date.getDate() - 30); // Derniers 30 jours
-        const searchCriteria = ["ALL", ["SINCE", date]];
-        const fetchOptions = {
-          bodies: [""],
-          struct: true,
-        };
-
-        const messages = await connection.search(searchCriteria, fetchOptions);
-        const emails = await Promise.all(
-          messages.map(async (message: imaps.Message) => {
-            const parsed = await simpleParser(message.parts[0].body);
-            return {
-              messageId: parsed.messageId || "",
-              from: Array.isArray(parsed.from)
-                ? parsed.from[0]?.text || ""
-                : parsed.from?.text || "",
-              to: Array.isArray(parsed.to)
-                ? parsed.to[0]?.text || ""
-                : parsed.to?.text || "",
-              subject: parsed.subject || "",
-              content: parsed.html || parsed.textAsHtml || parsed.text || "",
-              timestamp: parsed.date || new Date(),
-              userId: userId,
-              read: false,
-              starred: false,
-              folder: "inbox",
-              selected: false,
-            } as EmailData;
-          })
-        );
-
-        await connection.end();
-        return emails;
-      } catch (error) {
-        console.error("Erreur lors de la récupération des emails:", error);
-        if (error instanceof Error) {
-          throw error;
-        }
-        throw new Error("Erreur inconnue lors de la récupération des emails");
-      }
-    };
-
-    // Récupérer les emails
-    const emails = await fetchEmails();
-
-    // Vérifier les emails existants
+    // Récupérer les emails existants
     const existingEmailsSnapshot = await adminDb
       .collection("emails")
       .where("userId", "==", userId)
@@ -196,24 +123,11 @@ export async function POST(request: Request) {
       existingEmailsSnapshot.docs.map((doc) => doc.data().messageId)
     );
 
-    // Filtrer les nouveaux emails
-    const newEmails = emails.filter(
-      (email) => !existingMessageIds.has(email.messageId)
-    );
-
-    // Sauvegarder les nouveaux emails
-    if (newEmails.length > 0) {
-      const batch = adminDb.batch();
-      for (const email of newEmails) {
-        const newEmailRef = adminDb.collection("emails").doc();
-        batch.set(newEmailRef, email);
-      }
-      await batch.commit();
-    }
-
+    // Pour l'instant, on retourne simplement un message indiquant que la synchronisation IMAP n'est pas disponible
     return NextResponse.json({
-      message: `${newEmails.length} nouveaux emails synchronisés`,
-      totalEmails: emails.length,
+      message:
+        "La synchronisation IMAP n'est pas disponible sur Vercel. Veuillez utiliser un serveur dédié pour cette fonctionnalité.",
+      totalEmails: existingEmailsSnapshot.size,
     });
   } catch (error: unknown) {
     console.error("❌ Erreur détaillée:", error);
