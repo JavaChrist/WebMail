@@ -181,13 +181,16 @@ export default function MyCalendar() {
   >(new Set(Object.keys(categories) as (keyof typeof categories)[]));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(
+    undefined
   );
-  const [selectedSlot, setSelectedSlot] = useState<{
-    start: Date;
-    end: Date;
-  } | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<
+    | {
+        start: Date;
+        end: Date;
+      }
+    | undefined
+  >(undefined);
 
   // Charger les événements depuis Firebase au montage du composant
   useEffect(() => {
@@ -243,14 +246,14 @@ export default function MyCalendar() {
   }, []);
 
   const handleSelect = ({ start, end }: { start: Date; end: Date }) => {
-    setSelectedEvent(null);
+    setSelectedEvent(undefined);
     setSelectedSlot({ start, end });
     setIsModalOpen(true);
   };
 
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
-    setSelectedSlot(null);
+    setSelectedSlot(undefined);
     setIsModalOpen(true);
   };
 
@@ -329,30 +332,6 @@ export default function MyCalendar() {
     },
   });
 
-  // Composant personnalisé pour l'affichage des événements
-  const components = {
-    agenda: {
-      event: ({ event }: { event: CalendarEvent }) => {
-        const Icon = categories[event.category].icon;
-        return (
-          <div
-            className="flex items-center gap-2 py-1 px-2 rounded event-item"
-            style={{
-              backgroundColor: priorityColors[event.priority],
-              borderLeft: `6px solid ${priorityColors[event.priority]}`,
-              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-              transition: "all 0.2s ease-in-out",
-              cursor: "pointer",
-            }}
-          >
-            <Icon size={14} className="flex-shrink-0" />
-            <span className="truncate">{event.title}</span>
-          </div>
-        );
-      },
-    },
-  };
-
   // Filtrer les événements par catégorie
   const filteredEvents = events.filter((event) =>
     selectedCategories.has(event.category)
@@ -407,8 +386,8 @@ export default function MyCalendar() {
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
-            setSelectedEvent(null);
-            setSelectedSlot(null);
+            setSelectedEvent(undefined);
+            setSelectedSlot(undefined);
           }}
           selectedEvent={selectedEvent}
           selectedSlot={selectedSlot}
