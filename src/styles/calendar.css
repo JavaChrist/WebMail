@@ -1,0 +1,27 @@
+/* 📌 Taille des titres des jours */
+.rbc-header {
+  font-size: 1rem;
+  padding: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* 📌 Augmenter la hauteur des cellules */
+.rbc-time-content {
+  min-height: 500px;
+}
+
+/* 📌 Amélioration de la couleur des événements */
+.rbc-event {
+  background-color: #007bff !important;
+  border-radius: 4px !important;
+  padding: 5px !important;
+  color: white !important;
+}
+
+/* 📌 Adapter le calendrier aux petits écrans */
+@media (max-width: 768px) {
+  .rbc-time-content {
+    min-height: 400px;
+  }
+}

@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fonction helper pour vérifier l'authentification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Fonction pour vérifier si l'utilisateur est le propriétaire
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Règles pour emailAccounts
+    match /emailAccounts/{userId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règles pour emailSettings
+    match /emailSettings/{userId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règles pour emails
+    match /emails/{emailId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règles pour contacts
+    match /contacts/{contactId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règles pour events
+    match /events/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règles pour customFolders
+    match /customFolders/{folderId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Règles pour les sous-collections
+    match /{path=**}/emails/{email} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /{path=**}/contacts/{contact} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /{path=**}/events/{event} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Règle par défaut - refuser tout accès non autorisé
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 
