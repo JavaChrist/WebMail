@@ -152,6 +152,26 @@ const CustomEventComponent = ({ event }: EventProps<CalendarEvent>) => {
   );
 };
 
+// Composant personnalisé pour l'affichage des événements en vue agenda
+const AgendaEventComponent = ({ event }: { event: CalendarEvent }) => {
+  const Icon = categories[event.category].icon;
+  return (
+    <div
+      className="flex items-center gap-2 py-1 px-2 rounded event-item"
+      style={{
+        backgroundColor: priorityColors[event.priority],
+        borderLeft: `6px solid ${priorityColors[event.priority]}`,
+        boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+        transition: "all 0.2s ease-in-out",
+        cursor: "pointer",
+      }}
+    >
+      <Icon size={14} className="flex-shrink-0" />
+      <span className="truncate">{event.title}</span>
+    </div>
+  );
+};
+
 export default function MyCalendar() {
   const { isDarkMode } = useTheme();
   const [view, setView] = useState<View>(Views.WEEK);
@@ -376,6 +396,9 @@ export default function MyCalendar() {
         eventPropGetter={eventPropGetter}
         components={{
           event: CustomEventComponent,
+          agenda: {
+            event: AgendaEventComponent,
+          },
         }}
         className={`${isDarkMode ? "dark" : ""}`}
       />
@@ -387,8 +410,8 @@ export default function MyCalendar() {
             setSelectedEvent(null);
             setSelectedSlot(null);
           }}
-          event={selectedEvent}
-          slot={selectedSlot}
+          selectedEvent={selectedEvent}
+          selectedSlot={selectedSlot}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
         />
