@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import {
   Inbox,
@@ -71,7 +71,7 @@ interface EmailAccount {
   name: string;
 }
 
-export default function EmailPage() {
+function EmailContent() {
   const { isDarkMode } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -954,5 +954,13 @@ export default function EmailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function EmailPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <EmailContent />
+    </Suspense>
   );
 }
