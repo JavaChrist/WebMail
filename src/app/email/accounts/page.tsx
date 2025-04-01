@@ -9,10 +9,11 @@ import {
   doc,
   addDoc,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { auth } from "@/config/firebase";
 import { db } from "@/config/firebase";
-import { Plus, Mail, Trash2, Edit2 } from "lucide-react";
+import { Plus, Mail, Trash2, Edit2, Power } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useRouter } from "next/navigation";
 import EmailAccountModal, {
@@ -106,6 +107,7 @@ export default function EmailAccountsPage() {
       } else {
         // Création d'un nouveau compte
         accountData.createdAt = new Date();
+        accountData.isActive = accounts.length === 0; // Premier compte créé devient actif
         const docRef = await addDoc(
           collection(db, "emailAccounts"),
           accountData
@@ -138,6 +140,43 @@ export default function EmailAccountsPage() {
     } catch (error) {
       console.error("Erreur lors de la suppression du compte:", error);
       showToast("Erreur lors de la suppression du compte", "error");
+    }
+  };
+
+  const handleToggleActive = async (account: EmailAccount) => {
+    if (!account.id || !auth.currentUser) return;
+
+    try {
+      // Désactiver tous les comptes
+      const batch = writeBatch(db);
+      accounts.forEach((acc) => {
+        if (acc.id) {
+          batch.update(doc(db, "emailAccounts", acc.id), { isActive: false });
+        }
+      });
+
+      // Activer le compte sélectionné
+      batch.update(doc(db, "emailAccounts", account.id), { isActive: true });
+
+      await batch.commit();
+
+      // Mettre à jour l'état local
+      setAccounts((prev) =>
+        prev.map((acc) => ({
+          ...acc,
+          isActive: acc.id === account.id,
+        }))
+      );
+
+      showToast(
+        account.isActive
+          ? "Compte désactivé avec succès"
+          : "Compte activé avec succès",
+        "success"
+      );
+    } catch (error) {
+      console.error("Erreur lors du changement d'état du compte:", error);
+      showToast("Erreur lors du changement d'état du compte", "error");
     }
   };
 
@@ -189,6 +228,22 @@ export default function EmailAccountsPage() {
                 <h3 className="text-lg font-medium">{account.name}</h3>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleToggleActive(account)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    account.isActive
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                      : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                  title={
+                    account.isActive ? "Compte actif" : "Activer le compte"
+                  }
+                >
+                  <Power
+                    size={16}
+                    className={account.isActive ? "text-green-500" : ""}
+                  />
+                </button>
                 <button
                   onClick={() => {
                     setSelectedAccount(account);

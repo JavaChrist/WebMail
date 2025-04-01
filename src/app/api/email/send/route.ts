@@ -76,8 +76,16 @@ export async function POST(request: Request) {
     }
 
     const password = await decryptPassword(emailAccount.password);
+    console.log("✅ Mot de passe déchiffré avec succès");
 
     // Configuration du transporteur SMTP
+    console.log("🔧 Configuration du transporteur SMTP avec:", {
+      host: emailAccount.smtpServer,
+      port: emailAccount.smtpPort,
+      secure: emailAccount.useSSL,
+      user: emailAccount.email,
+    });
+
     const transporter = nodemailer.createTransport({
       host: emailAccount.smtpServer,
       port: emailAccount.smtpPort,
@@ -88,13 +96,35 @@ export async function POST(request: Request) {
       },
     });
 
+    console.log("✅ Transporteur SMTP créé");
+
     // Envoi de l'email
+    console.log("📧 Tentative d'envoi de l'email à:", to);
     await transporter.sendMail({
       from: emailAccount.email,
       to,
       subject,
       html: content,
     });
+    console.log("✅ Email envoyé avec succès");
+
+    // Sauvegarder l'email envoyé dans Firestore
+    const sentEmailData = {
+      messageId: `sent_${Date.now()}`,
+      from: emailAccount.email,
+      to,
+      subject,
+      content,
+      timestamp: new Date(),
+      read: true,
+      starred: false,
+      folder: "sent",
+      userId,
+      selected: false,
+    };
+
+    await adminDb.collection("emails").add(sentEmailData);
+    console.log("✅ Email envoyé sauvegardé dans Firestore");
 
     return NextResponse.json({
       message: "Email envoyé avec succès",

@@ -40,11 +40,40 @@ export default function Register() {
       return;
     }
 
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       router.push("/app");
     } catch (err: any) {
-      setError("Erreur lors de l'inscription : " + err.message);
+      let errorMessage = "Une erreur est survenue lors de l'inscription";
+
+      switch (err.code) {
+        case "auth/email-already-in-use":
+          errorMessage = "Cette adresse email est déjà utilisée";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "L'adresse email n'est pas valide";
+          break;
+        case "auth/operation-not-allowed":
+          errorMessage = "L'inscription par email n'est pas activée";
+          break;
+        case "auth/weak-password":
+          errorMessage =
+            "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères";
+          break;
+        case "auth/network-request-failed":
+          errorMessage =
+            "Erreur de connexion réseau. Vérifiez votre connexion internet";
+          break;
+        default:
+          errorMessage = "Impossible de créer le compte. Veuillez réessayer";
+      }
+
+      setError(errorMessage);
     }
   };
 
@@ -54,7 +83,30 @@ export default function Register() {
       await signInWithPopup(auth, provider);
       router.push("/app");
     } catch (error: any) {
-      setError("Erreur avec Google : " + error.message);
+      let errorMessage =
+        "Une erreur est survenue lors de l'inscription avec Google";
+
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          errorMessage = "La fenêtre d'inscription Google a été fermée";
+          break;
+        case "auth/cancelled-popup-request":
+          errorMessage = "L'inscription avec Google a été annulée";
+          break;
+        case "auth/popup-blocked":
+          errorMessage =
+            "La fenêtre d'inscription Google a été bloquée. Veuillez autoriser les popups";
+          break;
+        case "auth/account-exists-with-different-credential":
+          errorMessage =
+            "Un compte existe déjà avec cette adresse email mais avec une méthode de connexion différente";
+          break;
+        default:
+          errorMessage =
+            "Impossible de s'inscrire avec Google. Veuillez réessayer";
+      }
+
+      setError(errorMessage);
     }
   };
 

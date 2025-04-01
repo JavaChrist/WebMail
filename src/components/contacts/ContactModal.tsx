@@ -93,14 +93,19 @@ export default function ContactModal({
     }
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Formulaire soumis avec les données:", contact);
     if (!contact.nom) {
       console.log("Le nom est manquant");
       return;
     }
-    onSave(contact);
+    try {
+      await onSave(contact);
+      onClose();
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du contact:", error);
+    }
   };
 
   return (

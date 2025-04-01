@@ -47,31 +47,33 @@ const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY;
 
 const encryptPassword = (password: string): string => {
   if (!ENCRYPTION_KEY) {
+    console.error("❌ La clé de chiffrement n'est pas définie");
     throw new Error("La clé de chiffrement n'est pas définie");
   }
   try {
-    // Utiliser une approche plus simple sans format spécifique
-    return CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString();
+    console.log(
+      "🔑 Tentative de chiffrement avec la clé:",
+      ENCRYPTION_KEY.substring(0, 5) + "..."
+    );
+    const encrypted = CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString();
+    console.log("✅ Chiffrement réussi");
+    return encrypted;
   } catch (error) {
-    console.error("Erreur lors du chiffrement:", error);
+    console.error("❌ Erreur lors du chiffrement:", error);
     throw new Error("Le chiffrement a échoué");
   }
 };
 
 const decryptPassword = (encryptedPassword: string): string => {
   if (!ENCRYPTION_KEY) {
+    console.error("❌ La clé de chiffrement n'est pas définie");
     throw new Error("La clé de chiffrement n'est pas définie");
   }
   try {
-    // Déchiffrement simple
     const bytes = CryptoJS.AES.decrypt(encryptedPassword, ENCRYPTION_KEY);
-    const result = bytes.toString(CryptoJS.enc.Utf8);
-    if (!result) {
-      throw new Error("Le déchiffrement a produit une chaîne vide");
-    }
-    return result;
+    return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
-    console.error("Erreur lors du décryptage:", error);
+    console.error("❌ Erreur lors du déchiffrement:", error);
     throw new Error("Le déchiffrement a échoué");
   }
 };
@@ -81,7 +83,12 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
   const [settings, setSettings] = useState<EmailSettings>({
     email: "",
     emailPassword: "",
-    ...defaultIonosSettings,
+    smtpHost: "",
+    smtpPort: 587,
+    smtpSecure: false,
+    imapHost: "",
+    imapPort: 993,
+    imapSecure: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,12 +113,24 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
           setSettings({
             email: data.email || "",
             emailPassword: data.password ? decryptPassword(data.password) : "",
-            smtpHost: data.smtpServer || defaultIonosSettings.smtpHost,
-            smtpPort: data.smtpPort || defaultIonosSettings.smtpPort,
-            smtpSecure: data.useSSL ?? defaultIonosSettings.smtpSecure,
-            imapHost: data.imapServer || defaultIonosSettings.imapHost,
-            imapPort: data.imapPort || defaultIonosSettings.imapPort,
-            imapSecure: data.useSSL ?? defaultIonosSettings.imapSecure,
+            smtpHost: data.smtpServer || "",
+            smtpPort: data.smtpPort || 587,
+            smtpSecure: data.useSSL || false,
+            imapHost: data.imapServer || "",
+            imapPort: data.imapPort || 993,
+            imapSecure: data.useSSL || false,
+          });
+        } else {
+          // Réinitialiser les paramètres si aucun compte n'existe
+          setSettings({
+            email: "",
+            emailPassword: "",
+            smtpHost: "",
+            smtpPort: 587,
+            smtpSecure: false,
+            imapHost: "",
+            imapPort: 993,
+            imapSecure: false,
           });
         }
       } catch (error) {
@@ -122,8 +141,6 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
 
     if (isOpen) {
       loadSettings();
-      setError(null);
-      setSuccess(null);
     }
   }, [isOpen]);
 
@@ -188,9 +205,28 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
       );
       const querySnapshot = await getDocs(q);
 
+      // Récupérer le compte existant
+      const existingAccount = querySnapshot.empty
+        ? null
+        : querySnapshot.docs[0].data();
+
+      // Gérer le mot de passe
+      let passwordToSave;
+      if (settings.emailPassword) {
+        // Si un nouveau mot de passe est fourni, le chiffrer
+        console.log("🔐 Chiffrement du nouveau mot de passe");
+        passwordToSave = encryptPassword(settings.emailPassword);
+      } else if (existingAccount?.password) {
+        // Sinon, garder l'ancien mot de passe chiffré
+        console.log("🔐 Conservation de l'ancien mot de passe");
+        passwordToSave = existingAccount.password;
+      } else {
+        throw new Error("Le mot de passe est requis");
+      }
+
       const configData = {
         email: settings.email,
-        password: encryptPassword(settings.emailPassword),
+        password: passwordToSave,
         smtpServer: settings.smtpHost,
         smtpPort: Number(settings.smtpPort),
         useSSL: Boolean(settings.smtpSecure),
@@ -213,7 +249,7 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
       setSuccess("Configuration enregistrée avec succès");
       setTimeout(() => onClose(), 1500);
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde:", error);
+      console.error("❌ Erreur lors de la sauvegarde:", error);
       setError(
         error instanceof Error
           ? error.message
@@ -234,8 +270,29 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
     setSuccess(null);
   };
 
+  const handleClose = () => {
+    // Réinitialiser tous les champs
+    setSettings({
+      email: "",
+      emailPassword: "",
+      smtpHost: "",
+      smtpPort: 587,
+      smtpSecure: false,
+      imapHost: "",
+      imapPort: 993,
+      imapSecure: false,
+    });
+    setError("");
+    setSuccess("");
+    onClose();
+  };
+
   return (
-    <HeadlessDialog open={isOpen} onClose={onClose} className="relative z-50">
+    <HeadlessDialog
+      open={isOpen}
+      onClose={handleClose}
+      className="relative z-50"
+    >
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -249,14 +306,14 @@ export default function EmailConfig({ isOpen, onClose }: EmailConfigProps) {
               Configuration du compte email
             </HeadlessDialog.Title>
             <button
-              onClick={onClose}
-              className={`${
+              onClick={handleClose}
+              className={`px-4 py-2 rounded-lg ${
                 isDarkMode
-                  ? "text-gray-400 hover:text-white"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-gray-700 hover:bg-gray-600"
+                  : "bg-gray-100 hover:bg-gray-200"
               }`}
             >
-              <X size={24} />
+              Fermer
             </button>
           </div>
 

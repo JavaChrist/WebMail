@@ -105,10 +105,18 @@ export default function ComposeModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log("🚀 Début de l'envoi d'email dans ComposeModal");
+    console.log("📝 Données du formulaire:", {
+      to,
+      subject,
+      content,
+      accountId,
+    });
     setIsSending(true);
 
     try {
       if (!accountId) {
+        console.error("❌ Pas d'accountId fourni dans ComposeModal");
         setToastMessage("Veuillez configurer un compte email");
         setToastType("error");
         setShowToast(true);
@@ -117,6 +125,7 @@ export default function ComposeModal({
 
       // Ajouter la signature au contenu
       const finalContent = `${content}\n\n${defaultSignature}`;
+      console.log("📧 Contenu final avec signature");
 
       await onSend({
         to,
@@ -126,13 +135,17 @@ export default function ComposeModal({
         accountId,
       });
 
+      console.log("✅ Email envoyé avec succès depuis ComposeModal");
       setToastMessage("Email envoyé avec succès");
       setToastType("success");
       setShowToast(true);
       resetForm();
       setTimeout(onClose, 3000);
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email:", error);
+      console.error(
+        "❌ Erreur lors de l'envoi de l'email dans ComposeModal:",
+        error
+      );
       setToastMessage(
         error instanceof Error
           ? error.message
@@ -266,13 +279,14 @@ export default function ComposeModal({
                   />
                 </div>
 
-                <div className="flex-1 min-h-[200px]">
+                <div className="flex-1 min-h-[400px]">
                   <Editor
                     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                     value={content}
                     onEditorChange={(content: string) => setContent(content)}
                     init={{
-                      height: "100%",
+                      height: 400,
+                      min_height: 400,
                       menubar: false,
                       plugins: [
                         "advlist",
@@ -309,7 +323,7 @@ export default function ComposeModal({
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="mt-4 space-y-4">
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <input
                     type="file"
@@ -354,11 +368,11 @@ export default function ComposeModal({
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex gap-2 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={onClose}
-                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg ${
                       isDarkMode
                         ? "bg-gray-800 hover:bg-gray-700"
                         : "bg-gray-100 hover:bg-gray-200"
@@ -369,7 +383,7 @@ export default function ComposeModal({
                   <button
                     type="submit"
                     disabled={isSending}
-                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isSending ? "Envoi en cours..." : "Envoyer"}
                   </button>

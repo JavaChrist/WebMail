@@ -70,6 +70,12 @@ interface EmailAccount {
   id: string;
   email: string;
   name: string;
+  smtpServer: string;
+  smtpPort: number;
+  imapServer: string;
+  imapPort: number;
+  useSSL: boolean;
+  useTLS: boolean;
 }
 
 function EmailContent() {
@@ -136,11 +142,17 @@ function EmailContent() {
 
   const syncEmails = useCallback(async () => {
     if (!auth.currentUser || !selectedAccount) {
+      console.log("❌ Pas de compte email sélectionné");
+      showToastMessage("Veuillez configurer un compte email", false);
       return;
     }
 
     setIsSyncing(true);
     try {
+      console.log(
+        "🔄 Début de la synchronisation pour:",
+        selectedAccount.email
+      );
       const response = await fetch("/api/email/fetch", {
         method: "POST",
         headers: {
@@ -160,7 +172,7 @@ function EmailContent() {
       await loadEmails();
       showToastMessage("Synchronisation réussie", true);
     } catch (error) {
-      console.error("Erreur détaillée lors de la synchronisation:", error);
+      console.error("❌ Erreur détaillée lors de la synchronisation:", error);
       showToastMessage(
         error instanceof Error
           ? error.message
@@ -173,14 +185,18 @@ function EmailContent() {
   }, [selectedAccount, loadEmails]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
+        // Réinitialiser toutes les données lors de la déconnexion
+        setSelectedAccount(null);
+        setEmails([]);
+        setSelectedEmail(null);
+        setSelectedEmails(new Set());
         router.push("/login");
-        return;
+      } else {
+        loadEmails();
+        loadEmailAccount();
       }
-      await loadEmailAccount();
-      await loadEmails();
-      await loadCustomFolders();
     });
 
     return () => unsubscribe();
@@ -206,6 +222,12 @@ function EmailContent() {
   }, [selectedFolder]);
 
   useEffect(() => {
+    if (!isConfigOpen) {
+      loadEmailAccount();
+    }
+  }, [isConfigOpen]);
+
+  useEffect(() => {
     const emailId = searchParams.get("emailId");
     if (emailId) {
       const email = emails.find((e) => e.id === emailId);
@@ -228,24 +250,65 @@ function EmailContent() {
     if (!auth.currentUser) return;
 
     try {
-      const emailAccountsRef = collection(db, "emailAccounts");
-      const q = query(
-        emailAccountsRef,
-        where("userId", "==", auth.currentUser.uid)
+      console.log(
+        "🔍 Chargement du compte email pour l'utilisateur:",
+        auth.currentUser.uid
       );
-
+      const accountsRef = collection(db, "emailAccounts");
+      const q = query(accountsRef, where("userId", "==", auth.currentUser.uid));
       const querySnapshot = await getDocs(q);
+
       if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const account = doc.data() as EmailAccount;
-        setSelectedAccount({
-          id: doc.id,
-          email: account.email,
-          name: account.name,
-        });
+        // Trouver le compte actif
+        const activeAccount = querySnapshot.docs.find(
+          (doc) => doc.data().isActive
+        );
+
+        if (!activeAccount) {
+          // Si aucun compte n'est actif, activer le premier compte
+          const firstAccount = querySnapshot.docs[0];
+          console.log(
+            "📝 Activation du premier compte:",
+            firstAccount.data().email
+          );
+          await updateDoc(doc(db, "emailAccounts", firstAccount.id), {
+            isActive: true,
+          });
+          const account = firstAccount.data() as EmailAccount;
+          setSelectedAccount({
+            id: firstAccount.id,
+            email: account.email,
+            name: account.name,
+            smtpServer: account.smtpServer,
+            smtpPort: account.smtpPort,
+            imapServer: account.imapServer,
+            imapPort: account.imapPort,
+            useSSL: account.useSSL,
+            useTLS: account.useTLS,
+          });
+          console.log("✅ Premier compte email activé:", account.email);
+        } else {
+          const account = activeAccount.data() as EmailAccount;
+          console.log("✅ Compte email actif trouvé:", account.email);
+          setSelectedAccount({
+            id: activeAccount.id,
+            email: account.email,
+            name: account.name,
+            smtpServer: account.smtpServer,
+            smtpPort: account.smtpPort,
+            imapServer: account.imapServer,
+            imapPort: account.imapPort,
+            useSSL: account.useSSL,
+            useTLS: account.useTLS,
+          });
+        }
+      } else {
+        console.log("❌ Aucun compte email trouvé");
+        setSelectedAccount(null);
       }
     } catch (error) {
-      console.error("Erreur lors du chargement du compte email:", error);
+      console.error("❌ Erreur lors du chargement du compte email:", error);
+      setSelectedAccount(null);
     }
   };
 
@@ -256,87 +319,49 @@ function EmailContent() {
     attachments?: File[];
     accountId?: string;
   }) => {
-    if (!auth.currentUser) return;
+    console.log("🚀 Début de l'envoi d'email:", emailData);
 
-    let emailRef;
+    if (!selectedAccount) {
+      console.error("❌ Pas de compte email sélectionné");
+      showToastMessage("Veuillez configurer un compte email", false);
+      return;
+    }
+
     try {
-      // Créer d'abord l'email dans Firestore
-      emailRef = await addDoc(collection(db, "emails"), {
-        from: auth.currentUser.email || "",
-        to: emailData.to,
-        subject: emailData.subject,
-        content: emailData.content,
-        timestamp: Timestamp.now(),
-        read: true,
-        starred: false,
-        folder: "sent" as Folder,
-        userId: auth.currentUser.uid,
-        status: "sending",
-      });
-
-      // Préparer les pièces jointes si présentes
-      const files = emailData.attachments
-        ? await Promise.all(
-            emailData.attachments.map(async (file) => {
-              const reader = new FileReader();
-              return new Promise<{
-                name: string;
-                content: string;
-                type: string;
-              }>((resolve) => {
-                reader.onloadend = () => {
-                  resolve({
-                    name: file.name,
-                    content: reader.result as string,
-                    type: file.type,
-                  });
-                };
-                reader.readAsDataURL(file);
-              });
-            })
-          )
-        : undefined;
-
-      // Envoyer l'email via l'API
+      console.log("📧 Envoi de la requête à l'API...");
       const response = await fetch("/api/email/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          to: emailData.to,
-          subject: emailData.subject,
-          content: emailData.content,
-          userId: auth.currentUser.uid,
-          emailId: emailRef.id,
-          accountId: selectedAccount?.id,
-          isHtml: true,
-          files,
+          ...emailData,
+          accountId: selectedAccount.id,
+          userId: auth.currentUser?.uid,
         }),
       });
 
+      console.log("📥 Réponse reçue:", response.status);
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Erreur lors de l'envoi de l'email");
+        console.error("❌ Erreur lors de l'envoi:", error);
+        throw new Error(error.message || "Erreur lors de l'envoi de l'email");
       }
 
-      // Afficher le toast de succès
-      showToastMessage("Email envoyé avec succès", true);
-
-      // Mettre à jour la liste si on est dans le dossier envoyés
-      if (selectedFolder === "sent") {
-        await loadEmails();
-      }
+      console.log("✅ Email envoyé avec succès");
+      setToastMessage("Email envoyé avec succès");
+      setShowToast(true);
+      setIsComposeOpen(false);
+      setReplyData(null);
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email:", error);
-      // Mettre à jour le statut de l'email en cas d'erreur
-      if (emailRef) {
-        await updateDoc(doc(db, "emails", emailRef.id), {
-          status: "error",
-          error: error instanceof Error ? error.message : "Erreur inconnue",
-        });
-      }
-      throw error;
+      console.error("❌ Erreur lors de l'envoi de l'email:", error);
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de l'envoi de l'email"
+      );
+      setShowToast(true);
     }
   };
 
@@ -595,6 +620,25 @@ function EmailContent() {
     } catch (error) {
       console.error("Erreur lors du déplacement de l'email:", error);
       showToastMessage("Erreur lors du déplacement de l'email", false);
+    }
+  };
+
+  const handleDeleteEmailAccount = async () => {
+    if (!auth.currentUser) return;
+
+    try {
+      const accountsRef = collection(db, "emailAccounts");
+      const q = query(accountsRef, where("userId", "==", auth.currentUser.uid));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        await deleteDoc(doc(db, "emailAccounts", querySnapshot.docs[0].id));
+        setSelectedAccount(null);
+        showToastMessage("Compte email supprimé avec succès", true);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du compte email:", error);
+      showToastMessage("Erreur lors de la suppression du compte email", false);
     }
   };
 
@@ -935,13 +979,16 @@ function EmailContent() {
           onClose={() => setIsComposeOpen(false)}
           initialData={replyData}
           onSend={handleSendEmail}
+          accountId={selectedAccount?.id}
         />
       )}
 
       {isConfigOpen && (
         <EmailConfig
           isOpen={isConfigOpen}
-          onClose={() => setIsConfigOpen(false)}
+          onClose={() => {
+            setIsConfigOpen(false);
+          }}
         />
       )}
 

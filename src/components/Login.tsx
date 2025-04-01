@@ -36,7 +36,35 @@ export default function Login() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/app");
     } catch (err: any) {
-      setError("Échec de connexion : " + err.message);
+      let errorMessage = "Une erreur est survenue lors de la connexion";
+
+      switch (err.code) {
+        case "auth/invalid-email":
+          errorMessage = "L'adresse email n'est pas valide";
+          break;
+        case "auth/user-disabled":
+          errorMessage = "Ce compte a été désactivé";
+          break;
+        case "auth/user-not-found":
+          errorMessage = "Aucun compte n'existe avec cette adresse email";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "Le mot de passe est incorrect";
+          break;
+        case "auth/too-many-requests":
+          errorMessage =
+            "Trop de tentatives de connexion. Veuillez réessayer plus tard";
+          break;
+        case "auth/network-request-failed":
+          errorMessage =
+            "Erreur de connexion réseau. Vérifiez votre connexion internet";
+          break;
+        default:
+          errorMessage =
+            "Impossible de se connecter. Vérifiez vos identifiants";
+      }
+
+      setError(errorMessage);
     }
   };
 
@@ -46,7 +74,30 @@ export default function Login() {
       await signInWithPopup(auth, provider);
       router.push("/app");
     } catch (error: any) {
-      setError("Erreur avec Google : " + error.message);
+      let errorMessage =
+        "Une erreur est survenue lors de la connexion avec Google";
+
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          errorMessage = "La fenêtre de connexion Google a été fermée";
+          break;
+        case "auth/cancelled-popup-request":
+          errorMessage = "La connexion avec Google a été annulée";
+          break;
+        case "auth/popup-blocked":
+          errorMessage =
+            "La fenêtre de connexion Google a été bloquée. Veuillez autoriser les popups";
+          break;
+        case "auth/account-exists-with-different-credential":
+          errorMessage =
+            "Un compte existe déjà avec cette adresse email mais avec une méthode de connexion différente";
+          break;
+        default:
+          errorMessage =
+            "Impossible de se connecter avec Google. Veuillez réessayer";
+      }
+
+      setError(errorMessage);
     }
   };
 

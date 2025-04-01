@@ -13,6 +13,7 @@ export interface EmailAccount {
   useSSL: boolean;
   useTLS: boolean;
   name: string;
+  isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
