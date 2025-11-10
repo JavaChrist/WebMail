@@ -12,29 +12,38 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Règles pour emailAccounts
-    match /emailAccounts/{userId} {
-      allow read, write: if isAuthenticated();
+    // Règles pour emailAccounts - permettre queries avec where userId
+    match /emailAccounts/{accountId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || isOwner(resource.data.userId));
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow list: if isAuthenticated();
     }
 
-    // Règles pour emailSettings
-    match /emailSettings/{userId} {
-      allow read, write: if isAuthenticated();
+    // Règles pour emailSettings - permettre queries avec where userId
+    match /emailSettings/{settingId} {
+      allow read, write: if isAuthenticated() && 
+        (resource == null || isOwner(resource.data.userId));
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow list: if isAuthenticated();
     }
 
     // Règles pour emails
     match /emails/{emailId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     // Règles pour contacts
     match /contacts/{contactId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     // Règles pour events
     match /events/{eventId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     // Règles pour customFolders
@@ -46,15 +55,18 @@ service cloud.firestore {
 
     // Règles pour les sous-collections
     match /{path=**}/emails/{email} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     match /{path=**}/contacts/{contact} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     match /{path=**}/events/{event} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
     }
 
     // Règle par défaut - refuser tout accès non autorisé

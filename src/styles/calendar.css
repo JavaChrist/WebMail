@@ -7,6 +7,89 @@
   min-width: 100px;
 }
 
+/* 📌 Style spécial pour l'en-tête de la date du jour en vue mois uniquement */
+.rbc-month-view .rbc-header.rbc-today {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #1e40af !important;
+  font-weight: bold;
+  border-bottom: 2px solid #3b82f6 !important;
+}
+
+/* 📌 En-tête de la date du jour en mode sombre pour vue mois uniquement - VERSION DOUCE */
+.dark .rbc-month-view .rbc-header.rbc-today {
+  background-color: rgba(96, 165, 250, 0.1) !important;
+  color: #94a3b8 !important;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.4) !important;
+}
+
+/* 📌 Supprimer TOUS les styles de la date du jour pour les en-têtes des vues jour/semaine */
+.rbc-time-view .rbc-header {
+  background-color: inherit !important;
+  background: inherit !important;
+  color: inherit !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  font-weight: normal !important;
+  animation: none !important;
+}
+
+.dark .rbc-time-view .rbc-header {
+  background-color: inherit !important;
+  background: inherit !important;
+  color: inherit !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  font-weight: normal !important;
+  animation: none !important;
+}
+
+/* 📌 Colonne de la journée actuelle en vue semaine/jour - SEULEMENT le contenu, pas l'en-tête */
+.rbc-time-view .rbc-time-content .rbc-today,
+.rbc-time-view .rbc-day-bg.rbc-today {
+  background-color: #f0f9ff !important;
+  border-left: 1px solid rgba(59, 130, 246, 0.4) !important;
+  border-right: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+/* 📌 Mode sombre pour la colonne du jour - SEULEMENT le contenu - VERSION DOUCE */
+.dark .rbc-time-view .rbc-time-content .rbc-today,
+.dark .rbc-time-view .rbc-day-bg.rbc-today {
+  background-color: rgba(30, 58, 138, 0.2) !important;
+  border-left: 1px solid rgba(96, 165, 250, 0.2) !important;
+  border-right: 1px solid rgba(96, 165, 250, 0.2) !important;
+}
+
+/* 📌 Indicateur de l'heure actuelle */
+.rbc-current-time-indicator {
+  background-color: #ef4444 !important;
+  height: 2px !important;
+  z-index: 3 !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+.rbc-current-time-indicator::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: -5px;
+  width: 12px;
+  height: 12px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
 /* 📌 Augmenter la hauteur des cellules */
 .rbc-time-content {
   height: calc(100vh - 200px);
@@ -18,10 +101,16 @@
 .rbc-event {
   background-color: #007bff !important;
   border-radius: 4px !important;
-  padding: 5px !important;
+  padding: 4px 6px !important;
   color: white !important;
   font-size: 0.75rem;
-  line-height: 1.2;
+  line-height: 1.1;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 /* 📌 Styles pour le conteneur du calendrier */
@@ -77,15 +166,16 @@
   }
 }
 
-/* 📌 Styles pour le thème sombre */
+/* 📌 Styles pour le thème sombre - VERSION DOUCE */
 .dark .rbc-calendar {
   background-color: #1f2937;
-  color: white;
+  color: #e5e7eb;
 }
 
 .dark .rbc-header {
-  background-color: #111827;
-  color: white;
+  background-color: #374151;
+  color: #d1d5db;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3) !important;
 }
 
 .dark .rbc-time-view {
@@ -97,16 +187,59 @@
 }
 
 .dark .rbc-time-slot {
-  color: white;
+  color: #9ca3af;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.2) !important;
 }
 
 .dark .rbc-time-gutter {
-  background-color: #111827;
-  color: white;
+  background-color: #374151;
+  color: #d1d5db;
+  border-right: 1px solid rgba(75, 85, 99, 0.3) !important;
 }
 
-.dark .rbc-today {
-  background-color: #374151;
+/* 📌 Lignes de la grille plus fines et discrètes en mode sombre */
+.dark .rbc-time-view .rbc-time-content > * {
+  border-right: 1px solid rgba(75, 85, 99, 0.2) !important;
+}
+
+.dark .rbc-day-slot {
+  border-top: 1px solid rgba(75, 85, 99, 0.15) !important;
+}
+
+/* 📌 Styles de la date du jour en mode sombre SEULEMENT pour les cellules - VERSION DOUCE */
+.dark .rbc-month-view .rbc-today,
+.dark .rbc-time-view .rbc-day-bg.rbc-today {
+  background-color: rgba(30, 64, 175, 0.3) !important;
+  color: #cbd5e1 !important;
+  font-weight: bold;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1) inset,
+    0 0 8px rgba(96, 165, 250, 0.15);
+  animation: todayPulseDarkSoft 3s ease-in-out infinite;
+}
+
+@keyframes todayPulseDark {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.2) inset,
+      0 0 6px rgba(96, 165, 250, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.3) inset,
+      0 0 10px rgba(96, 165, 250, 0.3);
+  }
+}
+
+@keyframes todayPulseDarkSoft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1) inset,
+      0 0 8px rgba(96, 165, 250, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.15) inset,
+      0 0 12px rgba(96, 165, 250, 0.2);
+  }
 }
 
 .dark .rbc-off-range {
@@ -148,8 +281,28 @@
   border-right: 1px solid #e5e7eb;
 }
 
-.rbc-today {
-  background-color: #f3f4f6;
+/* 📌 Styles de la date du jour SEULEMENT pour les cellules, pas les en-têtes */
+.rbc-month-view .rbc-today,
+.rbc-time-view .rbc-day-bg.rbc-today {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  font-weight: bold;
+  border: 1px solid #93c5fd !important;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) inset,
+    0 0 8px rgba(59, 130, 246, 0.2);
+  animation: todayPulse 3s ease-in-out infinite;
+}
+
+@keyframes todayPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) inset,
+      0 0 8px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3) inset,
+      0 0 12px rgba(59, 130, 246, 0.3);
+  }
 }
 
 .rbc-off-range {
@@ -194,13 +347,65 @@
 }
 
 .event-content {
-  overflow: visible !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 📌 Masquer les informations temporelles dans les petits événements */
+.rbc-event-content {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* 📌 Ajustements pour les événements courts */
+.rbc-event {
+  font-size: 0.7rem !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  .rbc-event {
+    font-size: 0.65rem !important;
+    padding: 2px 4px !important;
+    min-height: 16px !important;
+  }
+
+  .event-content .flex-shrink-0 {
+    display: none !important;
+  }
 }
 
 /* Empêcher le débordement du conteneur du calendrier */
 .rbc-calendar {
   overflow: hidden;
   height: 100% !important;
+}
+
+/* 📌 Styles pour éviter le débordement du texte des événements */
+.rbc-event-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+}
+
+.rbc-show-more {
+  font-size: 0.7rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 📌 Forcer la troncature du contenu des événements */
+.rbc-event .rbc-event-content,
+.rbc-event .rbc-event-label {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .rbc-agenda-view table.rbc-agenda-table {
@@ -224,37 +429,37 @@
 /* Styles pour le thème sombre */
 .dark .rbc-toolbar button {
   background-color: #374151;
-  color: white;
+  color: #d1d5db;
   border-color: #4b5563;
 }
 
 .dark .rbc-toolbar button:hover {
-  background-color: #4b5563;
+  background-color: rgba(75, 85, 99, 0.8);
 }
 
 .dark .rbc-toolbar button.rbc-active {
-  background-color: #3b82f6;
-  color: white;
+  background-color: rgba(59, 130, 246, 0.8);
+  color: #e5e7eb;
 }
 
 .dark .rbc-toolbar-label {
-  color: white;
+  color: #d1d5db;
 }
 
 .dark .rbc-agenda-view table.rbc-agenda-table {
   background-color: #1f2937;
-  color: white;
+  color: #e5e7eb;
 }
 
 .dark .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
-  background-color: #111827;
-  color: white;
+  background-color: #374151;
+  color: #d1d5db;
 }
 
 .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-  color: white;
+  color: #e5e7eb;
 }
 
 .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
-  background-color: #374151;
+  background-color: rgba(55, 65, 81, 0.7);
 }

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, FormEvent, ChangeEvent } from "react";
 import { X, Paperclip, Trash2 } from "lucide-react";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
 import { useTheme } from "@/context/ThemeContext";
-import { Editor } from "@tinymce/tinymce-react";
 import * as Toast from "@radix-ui/react-toast";
 
 interface ComposeModalProps {
@@ -25,11 +24,6 @@ interface ComposeModalProps {
   accountId?: string;
 }
 
-interface Attachment {
-  file: File;
-  size: number;
-}
-
 export default function ComposeModal({
   isOpen,
   onClose,
@@ -47,10 +41,6 @@ export default function ComposeModal({
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("error");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [signature, setSignature] = useState("");
-  const [signatureImage, setSignatureImage] = useState<File | null>(null);
-  const [signatureImagePreview, setSignatureImagePreview] =
-    useState<string>("");
 
   const defaultSignature = `
 <table style="font-family: Arial, sans-serif; color: #333333; border-top: 1px solid #dddddd; padding-top: 10px; margin-top: 20px;">
@@ -86,22 +76,7 @@ export default function ComposeModal({
       setContent("");
     }
     setAttachments([]);
-    setSignature("");
-    setSignatureImage(null);
-    setSignatureImagePreview("");
   }, [initialData]);
-
-  const handleSignatureImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSignatureImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSignatureImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -163,9 +138,6 @@ export default function ComposeModal({
     setSubject("");
     setContent("");
     setAttachments([]);
-    setSignature("");
-    setSignatureImage(null);
-    setSignatureImagePreview("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -194,33 +166,29 @@ export default function ComposeModal({
 
   return (
     <>
-      <HeadlessDialog open={isOpen} onClose={onClose} className="relative z-50">
+      <HeadlessDialog open={isOpen} onClose={onClose} className="relative z-[100]">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <HeadlessDialog.Panel
-            className={`w-full max-w-5xl h-[90vh] md:h-auto ${
-              isDarkMode ? "bg-gray-900" : "bg-white"
-            } rounded-lg shadow-xl flex flex-col`}
+            className={`w-full max-w-5xl h-[90vh] md:h-auto ${isDarkMode ? "bg-gray-900" : "bg-white"
+              } rounded-lg shadow-xl flex flex-col`}
           >
             <div
-              className={`flex justify-between items-center p-4 border-b ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}
+              className={`flex justify-between items-center p-4 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
             >
               <HeadlessDialog.Title
-                className={`text-lg md:text-xl font-semibold ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                }`}
+                className={`text-lg md:text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
               >
                 Nouveau message
               </HeadlessDialog.Title>
               <button
                 onClick={onClose}
-                className={`${
-                  isDarkMode
-                    ? "text-gray-400 hover:text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
+                className={`${isDarkMode
+                  ? "text-gray-400 hover:text-white"
+                  : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <X size={24} />
               </button>
@@ -233,9 +201,8 @@ export default function ComposeModal({
               <div className="space-y-4 flex-1 overflow-y-auto">
                 <div>
                   <label
-                    className={`block text-sm font-medium ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    } mb-1`}
+                    className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                      } mb-1`}
                   >
                     À
                   </label>
@@ -245,11 +212,10 @@ export default function ComposeModal({
                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                       setTo(e.target.value)
                     }
-                    className={`w-full ${
-                      isDarkMode
-                        ? "bg-gray-800 text-white border-gray-700"
-                        : "bg-white text-gray-900 border-gray-300"
-                    } border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full ${isDarkMode
+                      ? "bg-gray-800 text-white border-gray-700"
+                      : "bg-white text-gray-900 border-gray-300"
+                      } border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     placeholder="destinataire@example.com"
                     required
                   />
@@ -257,9 +223,8 @@ export default function ComposeModal({
 
                 <div>
                   <label
-                    className={`block text-sm font-medium ${
-                      isDarkMode ? "text-gray-300" : "text-gray-700"
-                    } mb-1`}
+                    className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                      } mb-1`}
                   >
                     Objet
                   </label>
@@ -269,56 +234,24 @@ export default function ComposeModal({
                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                       setSubject(e.target.value)
                     }
-                    className={`w-full ${
-                      isDarkMode
-                        ? "bg-gray-800 text-white border-gray-700"
-                        : "bg-white text-gray-900 border-gray-300"
-                    } border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`w-full ${isDarkMode
+                      ? "bg-gray-800 text-white border-gray-700"
+                      : "bg-white text-gray-900 border-gray-300"
+                      } border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     placeholder="Objet du message"
                     required
                   />
                 </div>
 
                 <div className="flex-1 min-h-[400px]">
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
+                  <textarea
                     value={content}
-                    onEditorChange={(content: string) => setContent(content)}
-                    init={{
-                      height: 400,
-                      min_height: 400,
-                      menubar: false,
-                      plugins: [
-                        "advlist",
-                        "autolink",
-                        "lists",
-                        "link",
-                        "image",
-                        "charmap",
-                        "preview",
-                        "anchor",
-                        "searchreplace",
-                        "visualblocks",
-                        "code",
-                        "fullscreen",
-                        "insertdatetime",
-                        "media",
-                        "table",
-                        "code",
-                        "help",
-                        "wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | blocks | " +
-                        "bold italic forecolor | alignleft aligncenter " +
-                        "alignright alignjustify | bullist numlist outdent indent | " +
-                        "removeformat | help",
-                      content_style: isDarkMode
-                        ? "body { font-family:Helvetica,Arial,sans-serif; font-size:14px; color: white; }"
-                        : "body { font-family:Helvetica,Arial,sans-serif; font-size:14px; }",
-                      skin: isDarkMode ? "oxide-dark" : "oxide",
-                      content_css: isDarkMode ? "dark" : "default",
-                    }}
+                    onChange={(e) => setContent(e.target.value)}
+                    className={`w-full h-[400px] p-4 rounded-lg ${isDarkMode
+                      ? "bg-gray-800 text-white border-gray-700"
+                      : "bg-white text-gray-900 border-gray-300"
+                      } border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    placeholder="Contenu du message..."
                   />
                 </div>
               </div>
@@ -335,11 +268,10 @@ export default function ComposeModal({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                      isDarkMode
-                        ? "bg-gray-800 hover:bg-gray-700"
-                        : "bg-gray-100 hover:bg-gray-200"
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isDarkMode
+                      ? "bg-gray-800 hover:bg-gray-700"
+                      : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                   >
                     <Paperclip size={20} />
                     <span className="hidden sm:inline">Pièces jointes</span>
@@ -349,9 +281,8 @@ export default function ComposeModal({
                       {attachments.map((file, index) => (
                         <div
                           key={index}
-                          className={`flex items-center gap-2 px-2 py-1 rounded-lg ${
-                            isDarkMode ? "bg-gray-800" : "bg-gray-100"
-                          }`}
+                          className={`flex items-center gap-2 px-2 py-1 rounded-lg ${isDarkMode ? "bg-gray-800" : "bg-gray-100"
+                            }`}
                         >
                           <span className="text-sm truncate max-w-[150px]">
                             {file.name}
@@ -372,11 +303,10 @@ export default function ComposeModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className={`px-4 py-2 rounded-lg ${
-                      isDarkMode
-                        ? "bg-gray-800 hover:bg-gray-700"
-                        : "bg-gray-100 hover:bg-gray-200"
-                    }`}
+                    className={`px-4 py-2 rounded-lg ${isDarkMode
+                      ? "bg-gray-800 hover:bg-gray-700"
+                      : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                   >
                     Annuler
                   </button>
@@ -397,9 +327,8 @@ export default function ComposeModal({
       {showToast && (
         <Toast.Provider>
           <Toast.Root
-            className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
-              toastType === "success" ? "bg-green-500" : "bg-red-500"
-            } text-white`}
+            className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${toastType === "success" ? "bg-green-500" : "bg-red-500"
+              } text-white`}
           >
             <Toast.Title className="font-medium">{toastMessage}</Toast.Title>
           </Toast.Root>

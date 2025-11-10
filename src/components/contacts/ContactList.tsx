@@ -84,11 +84,10 @@ export default function ContactList({
           <div
             key={contact.id}
             onClick={() => onContactSelect(contact)}
-            className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-200 ${
-              isDarkMode
-                ? "bg-gray-800 hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-600"
-                : "bg-white hover:bg-gray-50 hover:shadow-lg hover:shadow-gray-200 border border-gray-200"
-            } shadow-md`}
+            className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${isDarkMode
+              ? "bg-gray-800 hover:bg-gray-700 hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-600 hover:border-blue-500/50"
+              : "bg-white hover:bg-gray-50 hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-300 hover:border-blue-500/50"
+              } shadow-lg hover:shadow-xl`}
           >
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -112,14 +111,13 @@ export default function ContactList({
                           contact.email
                         )}`;
                       }}
-                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? "hover:bg-blue-900/30 hover:text-blue-400"
-                          : "hover:bg-blue-50 hover:text-blue-600"
-                      }`}
+                      className={`group p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                        ? "hover:bg-blue-900/30 hover:text-blue-400"
+                        : "hover:bg-blue-50 hover:text-blue-600"
+                        }`}
                       title="Envoyer un email"
                     >
-                      <Mail size={16} className="text-gray-500" />
+                      <Mail size={16} className={isDarkMode ? "text-gray-400 group-hover:text-blue-400" : "text-gray-500 group-hover:text-blue-600"} />
                     </button>
                     <span className="flex-1 truncate">{contact.email}</span>
                     <button
@@ -127,11 +125,10 @@ export default function ContactList({
                         e.stopPropagation();
                         copyToClipboard(contact.email);
                       }}
-                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? "hover:bg-blue-900/30 hover:text-blue-400"
-                          : "hover:bg-blue-50 hover:text-blue-600"
-                      }`}
+                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                        ? "hover:bg-blue-900/30 hover:text-blue-400"
+                        : "hover:bg-blue-50 hover:text-blue-600"
+                        }`}
                       title="Copier l'email"
                     >
                       <Copy size={14} />
@@ -145,14 +142,13 @@ export default function ContactList({
                         e.stopPropagation();
                         openPhoneDialer(contact.telephone);
                       }}
-                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? "hover:bg-blue-900/30 hover:text-blue-400"
-                          : "hover:bg-blue-50 hover:text-blue-600"
-                      }`}
+                      className={`group p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                        ? "hover:bg-blue-900/30 hover:text-blue-400"
+                        : "hover:bg-blue-50 hover:text-blue-600"
+                        }`}
                       title="Appeler"
                     >
-                      <Phone size={16} className="text-gray-500" />
+                      <Phone size={16} className={isDarkMode ? "text-gray-400 group-hover:text-blue-400" : "text-gray-500 group-hover:text-blue-600"} />
                     </button>
                     <span className="flex-1 truncate">{contact.telephone}</span>
                     <button
@@ -160,11 +156,10 @@ export default function ContactList({
                         e.stopPropagation();
                         copyToClipboard(contact.telephone);
                       }}
-                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? "hover:bg-blue-900/30 hover:text-blue-400"
-                          : "hover:bg-blue-50 hover:text-blue-600"
-                      }`}
+                      className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                        ? "hover:bg-blue-900/30 hover:text-blue-400"
+                        : "hover:bg-blue-50 hover:text-blue-600"
+                        }`}
                       title="Copier le numéro"
                     >
                       <Copy size={14} />
@@ -185,11 +180,10 @@ export default function ContactList({
         <div
           key={contact.id}
           onClick={() => onContactSelect(contact)}
-          className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-200 ${
-            isDarkMode
-              ? "bg-gray-800 hover:bg-gray-700 hover:shadow-lg hover:shadow-gray-900/30 border border-gray-600"
-              : "bg-white hover:bg-gray-50 hover:shadow-lg hover:shadow-gray-200 border border-gray-200"
-          } shadow-md`}
+          className={`p-4 sm:p-6 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${isDarkMode
+            ? "bg-gray-800 hover:bg-gray-700 hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-600 hover:border-blue-500/50"
+            : "bg-white hover:bg-gray-50 hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-300 hover:border-blue-500/50"
+            } shadow-lg hover:shadow-xl`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-4">
@@ -211,11 +205,10 @@ export default function ContactList({
                       e.stopPropagation();
                       copyToClipboard(contact.email);
                     }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                      isDarkMode
-                        ? "hover:bg-blue-900/30 hover:text-blue-400"
-                        : "hover:bg-blue-50 hover:text-blue-600"
-                    }`}
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                      ? "hover:bg-blue-900/30 hover:text-blue-400"
+                      : "hover:bg-blue-50 hover:text-blue-600"
+                      }`}
                     title="Copier l'email"
                   >
                     <Copy size={14} />
@@ -227,14 +220,13 @@ export default function ContactList({
                         contact.email
                       )}`;
                     }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                      isDarkMode
-                        ? "hover:bg-blue-900/30 hover:text-blue-400"
-                        : "hover:bg-blue-50 hover:text-blue-600"
-                    }`}
+                    className={`group p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                      ? "hover:bg-blue-900/30 hover:text-blue-400"
+                      : "hover:bg-blue-50 hover:text-blue-600"
+                      }`}
                     title="Envoyer un email"
                   >
-                    <Mail size={16} className="text-gray-500" />
+                    <Mail size={16} className={isDarkMode ? "text-gray-400 group-hover:text-blue-400" : "text-gray-500 group-hover:text-blue-600"} />
                   </button>
                 </>
               )}
@@ -245,11 +237,10 @@ export default function ContactList({
                       e.stopPropagation();
                       copyToClipboard(contact.telephone);
                     }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                      isDarkMode
-                        ? "hover:bg-blue-900/30 hover:text-blue-400"
-                        : "hover:bg-blue-50 hover:text-blue-600"
-                    }`}
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                      ? "hover:bg-blue-900/30 hover:text-blue-400"
+                      : "hover:bg-blue-50 hover:text-blue-600"
+                      }`}
                     title="Copier le numéro"
                   >
                     <Copy size={14} />
@@ -259,14 +250,13 @@ export default function ContactList({
                       e.stopPropagation();
                       openPhoneDialer(contact.telephone);
                     }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                      isDarkMode
-                        ? "hover:bg-blue-900/30 hover:text-blue-400"
-                        : "hover:bg-blue-50 hover:text-blue-600"
-                    }`}
+                    className={`group p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                      ? "hover:bg-blue-900/30 hover:text-blue-400"
+                      : "hover:bg-blue-50 hover:text-blue-600"
+                      }`}
                     title="Appeler"
                   >
-                    <Phone size={16} className="text-gray-500" />
+                    <Phone size={16} className={isDarkMode ? "text-gray-400 group-hover:text-blue-400" : "text-gray-500 group-hover:text-blue-600"} />
                   </button>
                 </>
               )}
@@ -286,7 +276,10 @@ export default function ContactList({
                       );
                     }
                   }}
-                  className="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className={`p-1.5 sm:p-2 rounded-lg transition-colors ${isDarkMode
+                    ? "hover:bg-blue-900/30 hover:text-blue-400"
+                    : "hover:bg-blue-50 hover:text-blue-600"
+                    }`}
                   title="Ouvrir dans Google Maps"
                 >
                   <MapPin size={14} />
@@ -328,11 +321,10 @@ export default function ContactList({
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg text-sm sm:text-base ${
-              toast.type === "success"
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
-            }`}
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg text-sm sm:text-base ${toast.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
+              }`}
           >
             {toast.message}
           </div>

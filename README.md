@@ -8,7 +8,7 @@ WebMail est une application de messagerie web moderne développée avec Next.js,
 
 ### 📧 Gestion des Emails
 
-- Configuration IMAP/SMTP pour la connexion à votre compte email
+- Configuration IMAP/SMTP pour la connexion à un ou plusieurs compte email
 - Synchronisation des emails avec chiffrement sécurisé des mots de passe
 - Lecture, envoi et gestion des emails
 - Support des pièces jointes

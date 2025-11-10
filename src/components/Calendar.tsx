@@ -137,7 +137,6 @@ const formats = {
 
 // Composant personnalisé pour les événements
 const CustomEventComponent = ({ event }: EventProps<CalendarEvent>) => {
-  const { isDarkMode } = useTheme();
   const Icon = categories[event.category].icon;
   return (
     <div className="flex items-center gap-1 h-full w-full pl-1 event-content">
@@ -176,9 +175,6 @@ export default function MyCalendar() {
   const { isDarkMode } = useTheme();
   const [view, setView] = useState<View>(Views.WEEK);
   const [date, setDate] = useState(new Date());
-  const [selectedCategories, setSelectedCategories] = useState<
-    Set<keyof typeof categories>
-  >(new Set(Object.keys(categories) as (keyof typeof categories)[]));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>(
@@ -186,24 +182,32 @@ export default function MyCalendar() {
   );
   const [selectedSlot, setSelectedSlot] = useState<
     | {
-        start: Date;
-        end: Date;
-      }
+      start: Date;
+      end: Date;
+    }
     | undefined
   >(undefined);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Charger les événements depuis Firebase au montage du composant
   useEffect(() => {
     const loadEvents = async () => {
-      if (!auth.currentUser) return;
+      // Attendre que l'utilisateur soit authentifié
+      if (!auth.currentUser) {
+        console.log("En attente de l'authentification...");
+        return;
+      }
 
       try {
+        console.log("Chargement des événements pour l'utilisateur:", auth.currentUser.uid);
         const eventsRef = collection(db, "events");
         const q = query(eventsRef, where("userId", "==", auth.currentUser.uid));
         const querySnapshot = await getDocs(q);
 
         // Si aucun événement n'existe, créons un événement de test
         if (querySnapshot.empty) {
+          console.log("Aucun événement trouvé, création d'un événement de test...");
           const testEvent = {
             title: "Réunion d'équipe",
             start: Timestamp.fromDate(new Date()),
@@ -216,51 +220,86 @@ export default function MyCalendar() {
           };
 
           try {
-            await addDoc(collection(db, "events"), testEvent);
-            console.log("Événement de test créé avec succès");
+            const docRef = await addDoc(collection(db, "events"), testEvent);
+            console.log("Événement de test créé avec succès:", docRef.id);
+
+            // Ajouter l'événement de test à l'état local
+            const newTestEvent = {
+              id: docRef.id,
+              ...testEvent,
+              start: testEvent.start.toDate(),
+              end: testEvent.end.toDate(),
+            } as CalendarEvent;
+            setEvents([newTestEvent]);
           } catch (error) {
-            console.error(
-              "Erreur lors de la création de l'événement de test:",
-              error
-            );
+            console.error("Erreur lors de la création de l'événement de test:", error);
           }
+        } else {
+          const loadedEvents = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              start: data.start.toDate(),
+              end: data.end.toDate(),
+            } as CalendarEvent;
+          });
+
+          console.log("Événements chargés:", loadedEvents.length);
+          setEvents(loadedEvents);
         }
-
-        const loadedEvents = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            start: data.start.toDate(),
-            end: data.end.toDate(),
-          } as CalendarEvent;
-        });
-
-        setEvents(loadedEvents);
       } catch (error) {
         console.error("Erreur lors du chargement des événements:", error);
       }
     };
 
-    loadEvents();
+    // Écouter les changements d'authentification
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setAuthLoading(false);
+      if (user) {
+        console.log("Utilisateur authentifié:", user.uid);
+        setIsAuthenticated(true);
+        loadEvents();
+      } else {
+        console.log("Utilisateur non authentifié");
+        setIsAuthenticated(false);
+        setEvents([]);
+      }
+    });
+
+    // Nettoyage de l'écoute
+    return () => unsubscribe();
   }, []);
 
   const handleSelect = ({ start, end }: { start: Date; end: Date }) => {
+    if (!isAuthenticated) {
+      alert("Vous devez être connecté pour créer un événement");
+      return;
+    }
     setSelectedEvent(undefined);
     setSelectedSlot({ start, end });
     setIsModalOpen(true);
   };
 
   const handleEventClick = (event: CalendarEvent) => {
+    if (!isAuthenticated) {
+      alert("Vous devez être connecté pour modifier un événement");
+      return;
+    }
     setSelectedEvent(event);
     setSelectedSlot(undefined);
     setIsModalOpen(true);
   };
 
   const handleSaveEvent = async (eventData: CalendarEvent) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) {
+      console.error("Utilisateur non authentifié");
+      alert("Vous devez être connecté pour sauvegarder un événement");
+      return;
+    }
 
     try {
+      console.log("Sauvegarde de l'événement:", eventData.title);
       const eventToSave = {
         ...eventData,
         userId: auth.currentUser.uid,
@@ -271,6 +310,7 @@ export default function MyCalendar() {
 
       if (eventData.id) {
         // Modification d'un événement existant
+        console.log("Modification de l'événement existant:", eventData.id);
         const eventRef = doc(db, "events", eventData.id);
         await updateDoc(eventRef, eventToSave);
 
@@ -278,16 +318,18 @@ export default function MyCalendar() {
           events.map((event) =>
             event.id === eventData.id
               ? {
-                  ...eventToSave,
-                  id: eventData.id,
-                  start: eventToSave.start.toDate(),
-                  end: eventToSave.end.toDate(),
-                }
+                ...eventToSave,
+                id: eventData.id,
+                start: eventToSave.start.toDate(),
+                end: eventToSave.end.toDate(),
+              }
               : event
           )
         );
+        console.log("Événement modifié avec succès");
       } else {
         // Ajout d'un nouvel événement
+        console.log("Création d'un nouvel événement");
         const docRef = await addDoc(collection(db, "events"), eventToSave);
         const newEvent = {
           ...eventToSave,
@@ -297,21 +339,31 @@ export default function MyCalendar() {
         };
 
         setEvents((prevEvents) => [...prevEvents, newEvent]);
+        console.log("Nouvel événement créé avec succès:", docRef.id);
       }
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erreur lors de la sauvegarde de l'événement:", error);
+      alert("Erreur lors de la sauvegarde de l'événement. Veuillez réessayer.");
     }
   };
 
   const handleDeleteEvent = async (eventToDelete: CalendarEvent) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) {
+      console.error("Utilisateur non authentifié");
+      alert("Vous devez être connecté pour supprimer un événement");
+      return;
+    }
 
     try {
+      console.log("Suppression de l'événement:", eventToDelete.title);
       await deleteDoc(doc(db, "events", eventToDelete.id));
       setEvents(events.filter((event) => event.id !== eventToDelete.id));
+      console.log("Événement supprimé avec succès");
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Erreur lors de la suppression de l'événement:", error);
+      alert("Erreur lors de la suppression de l'événement. Veuillez réessayer.");
     }
   };
 
@@ -332,21 +384,6 @@ export default function MyCalendar() {
     },
   });
 
-  // Filtrer les événements par catégorie
-  const filteredEvents = events.filter((event) =>
-    selectedCategories.has(event.category)
-  );
-
-  const toggleCategory = (category: keyof typeof categories) => {
-    const newCategories = new Set(selectedCategories);
-    if (newCategories.has(category)) {
-      newCategories.delete(category);
-    } else {
-      newCategories.add(category);
-    }
-    setSelectedCategories(newCategories);
-  };
-
   const handleViewChange = (newView: View) => {
     setView(newView);
     // Si on passe en vue agenda, on s'assure d'être sur la semaine en cours
@@ -355,21 +392,51 @@ export default function MyCalendar() {
     }
   };
 
+  // Affichage de chargement pendant l'authentification
+  if (authLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Chargement du calendrier...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage si non authentifié
+  if (!isAuthenticated) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Vous devez être connecté pour accéder au calendrier</p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Se connecter
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       <Calendar
         localizer={localizer}
-        events={filteredEvents}
+        events={events}
         startAccessor="start"
         endAccessor="end"
         style={{ height: "100%" }}
         messages={messages}
         culture="fr"
         formats={formats}
-        defaultView={view}
+        view={view}
         onView={handleViewChange}
         date={date}
         onNavigate={setDate}
+        selectable={true}
         onSelectSlot={handleSelect}
         onSelectEvent={handleEventClick}
         eventPropGetter={eventPropGetter}

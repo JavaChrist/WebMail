@@ -5,14 +5,21 @@ import nodemailer from "nodemailer";
 
 const decryptPassword = (encryptedPassword: string) => {
   try {
-    if (!process.env.ENCRYPTION_KEY) {
+    console.log("🔐 Tentative de déchiffrement avec la clé:", process.env.NEXT_PUBLIC_ENCRYPTION_KEY ? "Clé présente" : "Clé manquante");
+    
+    if (!process.env.NEXT_PUBLIC_ENCRYPTION_KEY) {
       throw new Error("Clé de chiffrement non définie");
     }
 
+    console.log("📦 Données chiffrées reçues:", encryptedPassword);
+    
     const bytes = CryptoJS.AES.decrypt(
       encryptedPassword,
-      process.env.ENCRYPTION_KEY
+      process.env.NEXT_PUBLIC_ENCRYPTION_KEY
     );
+    
+    console.log("🔓 Résultat du déchiffrement:", bytes.toString(CryptoJS.enc.Utf8));
+    
     const result = bytes.toString(CryptoJS.enc.Utf8);
 
     if (!result) {
@@ -21,7 +28,7 @@ const decryptPassword = (encryptedPassword: string) => {
 
     return result;
   } catch (error) {
-    console.error("Erreur lors du décryptage:", error);
+    console.error("❌ Erreur détaillée lors du décryptage:", error);
     throw new Error("Erreur lors du décryptage du mot de passe");
   }
 };
@@ -94,9 +101,20 @@ export async function POST(request: Request) {
         user: emailAccount.email,
         pass: password,
       },
+      debug: true,
+      logger: true
     });
 
     console.log("✅ Transporteur SMTP créé");
+
+    // Vérifier la connexion avant d'envoyer
+    try {
+      await transporter.verify();
+      console.log("✅ Connexion SMTP vérifiée avec succès");
+    } catch (error) {
+      console.error("❌ Erreur de vérification SMTP:", error);
+      throw new Error(`Erreur de connexion SMTP: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    }
 
     // Envoi de l'email
     console.log("📧 Tentative d'envoi de l'email à:", to);
