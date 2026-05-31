@@ -1,26 +1,24 @@
 "use client";
-import { useState, useEffect } from "react";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  doc,
-  addDoc,
-  updateDoc,
-  writeBatch,
-} from "firebase/firestore";
-import { auth } from "@/config/firebase";
-import { db } from "@/config/firebase";
-import { Plus, Mail, Trash2, Edit2, Power } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
-import { useRouter } from "next/navigation";
-import EmailAccountModal, {
-  EmailAccount,
-} from "@/components/email/EmailAccountModal";
 
-interface Toast {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Plus, Mail, Edit2, Power, ArrowLeft } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+import { auth } from "@/config/firebase";
+import type { MailAccount } from "@/types/mail";
+import {
+  getAccountsByUser,
+  createAccount,
+  updateAccount,
+  deleteAccount,
+  setActiveAccount,
+} from "@/lib/mail/accountService";
+import MailAccountModal, {
+  type MailAccountFormValues,
+} from "@/components/mail/MailAccountModal";
+
+interface ToastMsg {
   id: number;
   message: string;
   type: "success" | "error";
@@ -29,289 +27,245 @@ interface Toast {
 export default function EmailAccountsPage() {
   const router = useRouter();
   const { isDarkMode } = useTheme();
-  const [accounts, setAccounts] = useState<EmailAccount[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState<
-    EmailAccount | undefined
-  >();
-  const [isLoading, setIsLoading] = useState(true);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [accounts, setAccounts] = useState<MailAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<MailAccount | null>(null);
+  const [toasts, setToasts] = useState<ToastMsg[]>([]);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+  };
+
+  const load = async () => {
+    if (!auth.currentUser) {
+      setLoading(false);
+      return;
+    }
+    try {
+      setAccounts(await getAccountsByUser(auth.currentUser.uid));
+    } catch (error) {
+      console.error("Erreur chargement comptes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/login");
-      } else {
-        loadAccounts();
-      }
+      if (!user) router.push("/login");
+      else load();
     });
-
     return () => unsubscribe();
   }, [router]);
 
-  const showToast = (
-    message: string,
-    type: "success" | "error" = "success"
-  ) => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3000);
-  };
-
-  const loadAccounts = async () => {
-    if (!auth.currentUser) {
-      setIsLoading(false);
+  const handleSave = async (values: MailAccountFormValues) => {
+    const user = auth.currentUser;
+    if (!user) {
+      showToast("Vous devez être connecté", "error");
       return;
     }
-
     try {
-      const accountsRef = collection(db, "emailAccounts");
-      const q = query(accountsRef, where("userId", "==", auth.currentUser.uid));
-      const querySnapshot = await getDocs(q);
-
-      const loadedAccounts = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as EmailAccount[];
-
-      setAccounts(loadedAccounts);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Erreur lors du chargement des comptes:", error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveAccount = async (account: EmailAccount) => {
-    if (!auth.currentUser) {
-      showToast("Vous devez être connecté pour gérer les comptes", "error");
-      return;
-    }
-
-    try {
-      const accountData = {
-        ...account,
-        userId: auth.currentUser.uid,
-        updatedAt: new Date(),
-      };
-
-      if (account.id) {
-        // Mise à jour d'un compte existant
-        await updateDoc(doc(db, "emailAccounts", account.id), accountData);
-        setAccounts((prev) =>
-          prev.map((a) => (a.id === account.id ? account : a))
+      if (editing) {
+        await updateAccount(
+          editing.id,
+          {
+            email: values.email,
+            displayName: values.displayName,
+            signature: values.signature,
+            password: values.password,
+            imapServer: values.imapServer,
+            imapPort: values.imapPort,
+            imapSecure: values.imapSecure,
+            smtpServer: values.smtpServer,
+            smtpPort: values.smtpPort,
+            smtpSecure: values.smtpSecure,
+            color: values.color,
+          },
+          { encrypt: true }
         );
-        showToast("Compte mis à jour avec succès", "success");
+        showToast("Compte mis à jour");
       } else {
-        // Création d'un nouveau compte
-        accountData.createdAt = new Date();
-        accountData.isActive = accounts.length === 0; // Premier compte créé devient actif
-        const docRef = await addDoc(
-          collection(db, "emailAccounts"),
-          accountData
+        await createAccount(
+          {
+            userId: user.uid,
+            email: values.email,
+            displayName: values.displayName,
+            signature: values.signature,
+            password: values.password,
+            imapServer: values.imapServer,
+            imapPort: values.imapPort,
+            imapSecure: values.imapSecure,
+            smtpServer: values.smtpServer,
+            smtpPort: values.smtpPort,
+            smtpSecure: values.smtpSecure,
+            color: values.color,
+          },
+          { encrypt: true }
         );
-        const newAccount = { ...accountData, id: docRef.id };
-        setAccounts((prev) => [...prev, newAccount]);
-        showToast("Compte créé avec succès", "success");
+        showToast("Compte créé, dossiers système initialisés");
       }
-      setIsModalOpen(false);
-      setSelectedAccount(undefined);
+      setModalOpen(false);
+      setEditing(null);
+      await load();
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde du compte:", error);
+      console.error(error);
       showToast(
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de la sauvegarde du compte",
+        error instanceof Error ? error.message : "Erreur lors de la sauvegarde",
         "error"
       );
     }
   };
 
-  const handleDeleteAccount = async (account: EmailAccount) => {
-    if (!account.id || !auth.currentUser) return;
-
+  const handleDelete = async (account: MailAccount) => {
+    if (!window.confirm(`Supprimer le compte ${account.email} ?`)) return;
     try {
-      await deleteDoc(doc(db, "emailAccounts", account.id));
-      setAccounts((prev) => prev.filter((a) => a.id !== account.id));
-      setIsModalOpen(false);
-      showToast("Compte supprimé avec succès", "success");
+      await deleteAccount(account.id);
+      setModalOpen(false);
+      setEditing(null);
+      showToast("Compte supprimé");
+      await load();
     } catch (error) {
-      console.error("Erreur lors de la suppression du compte:", error);
-      showToast("Erreur lors de la suppression du compte", "error");
+      console.error(error);
+      showToast("Erreur lors de la suppression", "error");
     }
   };
 
-  const handleToggleActive = async (account: EmailAccount) => {
-    if (!account.id || !auth.currentUser) return;
-
+  const handleToggleActive = async (account: MailAccount) => {
+    if (!auth.currentUser) return;
     try {
-      // Désactiver tous les comptes
-      const batch = writeBatch(db);
-      accounts.forEach((acc) => {
-        if (acc.id) {
-          batch.update(doc(db, "emailAccounts", acc.id), { isActive: false });
-        }
-      });
-
-      // Activer le compte sélectionné
-      batch.update(doc(db, "emailAccounts", account.id), { isActive: true });
-
-      await batch.commit();
-
-      // Mettre à jour l'état local
-      setAccounts((prev) =>
-        prev.map((acc) => ({
-          ...acc,
-          isActive: acc.id === account.id,
-        }))
-      );
-
-      showToast(
-        account.isActive
-          ? "Compte désactivé avec succès"
-          : "Compte activé avec succès",
-        "success"
-      );
+      await setActiveAccount(auth.currentUser.uid, account.id);
+      showToast(`${account.displayName} est désormais actif`);
+      await load();
     } catch (error) {
-      console.error("Erreur lors du changement d'état du compte:", error);
-      showToast("Erreur lors du changement d'état du compte", "error");
+      console.error(error);
+      showToast("Erreur lors du changement de compte actif", "error");
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
       </div>
     );
   }
 
   return (
     <div
-      className={`p-8 ${
+      className={`p-8 min-h-screen ${
         isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-      } min-h-screen`}
+      }`}
     >
-      {/* En-tête */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Comptes email</h1>
-          <button
-            onClick={() => {
-              setSelectedAccount(undefined);
-              setIsModalOpen(true);
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/email"
+            className={`p-2 rounded-lg ${
+              isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
+            }`}
           >
-            <Plus size={20} />
-            <span>Nouveau compte</span>
-          </button>
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-2xl font-bold">Comptes email</h1>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(null);
+            setModalOpen(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+        >
+          <Plus size={20} />
+          <span>Nouveau compte</span>
+        </button>
       </div>
 
-      {/* Liste des comptes */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {accounts.map((account) => (
           <div
             key={account.id}
-            className={`p-6 rounded-xl ${
-              isDarkMode
-                ? "bg-gray-800 hover:bg-gray-700"
-                : "bg-white hover:bg-gray-50"
-            } shadow-md transition-all duration-200`}
+            className={`p-6 rounded-xl shadow-md ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Mail size={24} className="text-blue-500" />
-                <h3 className="text-lg font-medium">{account.name}</h3>
+              <div className="flex items-center gap-3 min-w-0">
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: account.color }}
+                />
+                <Mail size={20} className="text-blue-500 flex-shrink-0" />
+                <h3 className="text-lg font-medium truncate">
+                  {account.displayName}
+                </h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={() => handleToggleActive(account)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  title={account.isActive ? "Compte actif" : "Activer"}
+                  className={`p-2 rounded-lg ${
                     account.isActive
-                      ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                      ? "text-green-500"
                       : "hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
-                  title={
-                    account.isActive ? "Compte actif" : "Activer le compte"
-                  }
                 >
-                  <Power
-                    size={16}
-                    className={account.isActive ? "text-green-500" : ""}
-                  />
+                  <Power size={16} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
-                    setSelectedAccount(account);
-                    setIsModalOpen(true);
+                    setEditing(account);
+                    setModalOpen(true);
                   }}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                  title="Modifier"
+                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
                   <Edit2 size={16} />
                 </button>
-                <button
-                  onClick={() => handleDeleteAccount(account)}
-                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  title="Supprimer"
-                >
-                  <Trash2 size={16} className="text-red-500" />
-                </button>
               </div>
             </div>
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <div>{account.email}</div>
-              <div>
-                SMTP: {account.smtpServer}:{account.smtpPort}
-              </div>
-              <div>
-                IMAP: {account.imapServer}:{account.imapPort}
-              </div>
-              <div className="flex gap-2">
-                {account.useSSL && (
-                  <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-xs">
-                    SSL
-                  </span>
-                )}
-                {account.useTLS && (
-                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-xs">
-                    TLS
-                  </span>
-                )}
-              </div>
+            <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+              <div className="truncate">{account.email}</div>
+              <div>SMTP: {account.smtpServer}:{account.smtpPort}</div>
+              <div>IMAP: {account.imapServer}:{account.imapPort}</div>
+              {account.isActive && (
+                <span className="inline-block mt-2 px-2 py-0.5 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                  Actif
+                </span>
+              )}
             </div>
           </div>
         ))}
+
+        {accounts.length === 0 && (
+          <p className="opacity-60">Aucun compte. Créez-en un pour commencer.</p>
+        )}
       </div>
 
-      {/* Modal de compte */}
-      <EmailAccountModal
-        isOpen={isModalOpen}
+      <MailAccountModal
+        isOpen={modalOpen}
+        account={editing}
         onClose={() => {
-          setIsModalOpen(false);
-          setSelectedAccount(undefined);
+          setModalOpen(false);
+          setEditing(null);
         }}
-        onSave={handleSaveAccount}
-        onDelete={handleDeleteAccount}
-        selectedAccount={selectedAccount}
+        onSave={handleSave}
+        onDelete={handleDelete}
       />
 
-      {/* Toasts */}
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
+        {toasts.map((t) => (
           <div
-            key={toast.id}
-            className={`px-4 py-2 rounded-lg shadow-lg ${
-              toast.type === "success"
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
+            key={t.id}
+            className={`px-4 py-2 rounded-lg shadow-lg text-white ${
+              t.type === "success" ? "bg-green-500" : "bg-red-500"
             }`}
           >
-            {toast.message}
+            {t.message}
           </div>
         ))}
       </div>

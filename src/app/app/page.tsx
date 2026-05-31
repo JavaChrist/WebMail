@@ -6,41 +6,48 @@ import { auth, db } from "@/config/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useTheme } from "@/context/ThemeContext";
 
-interface Email {
+interface UnreadMessage {
   id: string;
-  from: string;
+  fromLabel: string;
   subject: string;
-  timestamp: any;
-  read: boolean;
-  userId: string;
+  timestamp: Date;
 }
 
 export default function AppPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [unreadEmails, setUnreadEmails] = useState<Email[]>([]);
+  const [unreadEmails, setUnreadEmails] = useState<UnreadMessage[]>([]);
   const router = useRouter();
   const { isDarkMode } = useTheme();
 
   const loadUnreadEmails = useCallback(async (userId: string) => {
     try {
-      const emailsRef = collection(db, "emails");
+      const messagesRef = collection(db, "mailMessages");
       const q = query(
-        emailsRef,
+        messagesRef,
         where("userId", "==", userId),
         where("read", "==", false)
       );
 
       const querySnapshot = await getDocs(q);
-      const emails = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Email[];
+      const messages: UnreadMessage[] = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        const from = data.from || {};
+        const ts = data.timestamp;
+        const timestamp =
+          ts && typeof ts.toDate === "function"
+            ? ts.toDate()
+            : new Date(ts ?? Date.now());
+        return {
+          id: doc.id,
+          fromLabel: from.name || from.email || "(inconnu)",
+          subject: data.subject || "(sans objet)",
+          timestamp,
+        };
+      });
 
-      emails.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
-      const limitedEmails = emails.slice(0, 15);
-
-      setUnreadEmails(limitedEmails);
+      messages.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      setUnreadEmails(messages.slice(0, 15));
     } catch (error) {
       console.error("Erreur lors du chargement des emails:", error);
       setUnreadEmails([]);
@@ -152,7 +159,7 @@ export default function AppPage() {
                             isDarkMode ? "text-white" : "text-black"
                           }`}
                         >
-                          {email.from.replace(/['"]/g, "")}
+                          {email.fromLabel.replace(/['"]/g, "")}
                         </span>
                         <span
                           className={
@@ -168,9 +175,7 @@ export default function AppPage() {
                         isDarkMode ? "text-gray-400" : "text-gray-500"
                       }`}
                     >
-                      {new Date(
-                        email.timestamp.seconds * 1000
-                      ).toLocaleDateString("fr-FR", {
+                      {email.timestamp.toLocaleDateString("fr-FR", {
                         day: "2-digit",
                         month: "2-digit",
                         year: "numeric",

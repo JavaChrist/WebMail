@@ -53,6 +53,37 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
 
+    // ===== Nouveau schéma mail (mailAccounts / mailFolders / mailMessages) =====
+
+    // Comptes mail
+    match /mailAccounts/{accountId} {
+      allow read, update, delete: if isAuthenticated() &&
+        (resource == null || isOwner(resource.data.userId));
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow list: if isAuthenticated();
+    }
+
+    // Dossiers mail (les dossiers système ne peuvent être ni renommés ni supprimés)
+    match /mailFolders/{folderId} {
+      allow read: if isAuthenticated() &&
+        (resource == null || isOwner(resource.data.userId));
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId) &&
+        resource.data.systemFolder == false;
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) &&
+        (resource.data.systemFolder == false ||
+          request.resource.data.name == resource.data.name);
+      allow list: if isAuthenticated();
+    }
+
+    // Messages mail
+    match /mailMessages/{messageId} {
+      allow read, update, delete: if isAuthenticated() &&
+        (resource == null || isOwner(resource.data.userId));
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow list: if isAuthenticated();
+    }
+
     // Règles pour les sous-collections
     match /{path=**}/emails/{email} {
       allow read, write: if isAuthenticated() && isOwner(resource.data.userId);
