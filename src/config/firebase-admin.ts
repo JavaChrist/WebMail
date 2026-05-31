@@ -2,7 +2,6 @@ import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
-import serviceAccount from "../../webmail-b926e-firebase-adminsdk-ma0c3-2683f55d50.json";
 
 // Fonction pour initialiser Firebase Admin
 function createFirebaseAdminApp() {
@@ -14,22 +13,7 @@ function createFirebaseAdminApp() {
   try {
     console.log("🔑 Initialisation Firebase Admin...");
 
-    // Essayer PRIORITAIREMENT avec le fichier de service account importé statiquement
-    try {
-      console.log("📁 Utilisation du fichier de service account importé");
-      const app = initializeApp({
-        credential: cert(serviceAccount as any),
-        storageBucket: "webmail-b926e.appspot.com",
-      });
-
-      console.log("✅ Firebase Admin initialisé avec fichier de service account");
-      return app;
-    } catch (fileError) {
-      console.log("⚠️ Erreur avec le fichier de service account:", fileError instanceof Error ? fileError.message : fileError);
-      console.log("   Essai avec les variables d'environnement...");
-    }
-
-    // Sinon essayer avec les variables d'environnement
+    // Initialisation via les variables d'environnement (compatible Vercel)
     if (process.env.FIREBASE_ADMIN_PROJECT_ID &&
       process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
       process.env.FIREBASE_ADMIN_PRIVATE_KEY) {
