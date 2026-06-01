@@ -18,6 +18,55 @@ const MESSAGES = "mailMessages";
 /** Nombre maximum de messages récupérés par dossier et par passe de synchro. */
 const PER_FOLDER_LIMIT = 100;
 
+/**
+ * Firestore limite chaque champ (et document) à ~1 Mio. On borne le contenu
+ * HTML/texte sous cette limite (avec marge) pour éviter les erreurs
+ * INVALID_ARGUMENT lors de la sauvegarde d'e-mails volumineux (images base64…).
+ */
+const HTML_MAX_BYTES = 700_000;
+const TEXT_MAX_BYTES = 120_000;
+
+/**
+ * Bornes de commit Firestore : la limite de payload d'une requête batch est
+ * ~10 Mio (11 534 336 octets). On reste largement en dessous (≈8 Mo) et on
+ * borne aussi le nombre de documents, en committant dès que l'une des deux
+ * limites est atteinte.
+ */
+const MAX_BATCH_BYTES = 8_000_000;
+const MAX_DOCS_PER_BATCH = 50;
+
+function clampToBytes(
+  value: string | undefined | null,
+  maxBytes: number
+): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (Buffer.byteLength(value, "utf8") <= maxBytes) return value;
+  let slice = value;
+  while (Buffer.byteLength(slice, "utf8") > maxBytes && slice.length > 0) {
+    slice = slice.slice(0, Math.floor(slice.length * 0.9));
+  }
+  return `${slice}\n\n[… message tronqué — trop volumineux pour l'aperçu]`;
+}
+
+/** Estimation (octets) de la taille d'un document message pour le découpage des batches. */
+function estimateDocBytes(doc: Record<string, unknown>): number {
+  const html = (doc.contentHtml as string) || "";
+  const text = (doc.contentText as string) || "";
+  const meta =
+    ((doc.subject as string) || "") +
+    ((doc.snippet as string) || "") +
+    JSON.stringify(doc.from ?? {}) +
+    JSON.stringify(doc.to ?? []) +
+    JSON.stringify(doc.cc ?? []) +
+    JSON.stringify(doc.attachments ?? []);
+  return (
+    Buffer.byteLength(html, "utf8") +
+    Buffer.byteLength(text, "utf8") +
+    Buffer.byteLength(meta, "utf8") +
+    2000
+  );
+}
+
 interface AccountData {
   email: string;
   password: string;
@@ -217,9 +266,10 @@ function fetchByUids(imap: Imap, uids: number[]): Promise<ParsedMessage[]> {
             contentText: text,
             timestamp: p.date || new Date(),
             hasAttachments: (p.attachments?.length ?? 0) > 0,
-            attachments: (p.attachments || []).map((a) => {
+            attachments: (p.attachments || []).map((a, i) => {
               const att: MailAttachment = {
                 filename: a.filename || "piece-jointe",
+                index: i,
               };
               if (a.contentType) att.contentType = a.contentType;
               if (typeof a.size === "number") att.size = a.size;
@@ -448,40 +498,62 @@ export async function syncAccount(
           const maxUid = slice.length ? Math.max(...slice) : lastUid;
 
           const fresh = parsed.filter((m) => !existingIds.has(m.messageId));
-          for (let i = 0; i < fresh.length; i += 400) {
-            const chunk = fresh.slice(i, i + 400);
-            const batch = adminDb.batch();
-            chunk.forEach((m) => {
-              existingIds.add(m.messageId);
-              const ref = adminDb.collection(MESSAGES).doc();
-              batch.set(ref, {
-                userId,
-                accountId,
-                folderIds: [rec.id],
-                primaryFolderId: rec.id,
-                messageId: m.messageId,
-                imapUid: m.imapUid,
-                from: m.from,
-                to: m.to,
-                cc: m.cc,
-                subject: m.subject,
-                snippet: m.snippet,
-                contentHtml: m.contentHtml,
-                contentText: m.contentText,
-                timestamp: Timestamp.fromDate(m.timestamp),
-                read: rec.folderType === "sent" ? true : m.read,
-                starred: m.starred,
-                hasAttachments: m.hasAttachments,
-                attachments: m.attachments,
-                flags: [],
-                createdAt: now,
-                updatedAt: now,
-              });
-            });
-            // eslint-disable-next-line no-await-in-loop
+
+          // Découpage des batches borné en TAILLE (~8 Mo) et en nombre (50),
+          // pour ne jamais dépasser la limite de payload Firestore (~10 Mio).
+          let batch = adminDb.batch();
+          let batchCount = 0;
+          let batchBytes = 0;
+          const flushBatch = async () => {
+            if (batchCount === 0) return;
             await batch.commit();
-            syncedCount += chunk.length;
+            batch = adminDb.batch();
+            batchCount = 0;
+            batchBytes = 0;
+          };
+
+          for (const m of fresh) {
+            existingIds.add(m.messageId);
+            const docData = {
+              userId,
+              accountId,
+              folderIds: [rec.id],
+              primaryFolderId: rec.id,
+              messageId: m.messageId,
+              imapUid: m.imapUid,
+              from: m.from,
+              to: m.to,
+              cc: m.cc,
+              subject: m.subject,
+              snippet: m.snippet,
+              contentHtml: clampToBytes(m.contentHtml, HTML_MAX_BYTES),
+              contentText: clampToBytes(m.contentText, TEXT_MAX_BYTES),
+              timestamp: Timestamp.fromDate(m.timestamp),
+              read: rec.folderType === "sent" ? true : m.read,
+              starred: m.starred,
+              hasAttachments: m.hasAttachments,
+              attachments: m.attachments,
+              flags: [],
+              createdAt: now,
+              updatedAt: now,
+            };
+            const estimated = estimateDocBytes(docData);
+
+            if (
+              batchCount > 0 &&
+              (batchCount >= MAX_DOCS_PER_BATCH ||
+                batchBytes + estimated > MAX_BATCH_BYTES)
+            ) {
+              // eslint-disable-next-line no-await-in-loop
+              await flushBatch();
+            }
+
+            batch.set(adminDb.collection(MESSAGES).doc(), docData);
+            batchCount++;
+            batchBytes += estimated;
+            syncedCount++;
           }
+          await flushBatch();
 
           if (
             maxUid !== rec.lastSeenUid ||

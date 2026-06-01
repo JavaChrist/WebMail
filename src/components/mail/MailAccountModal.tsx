@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Save, Trash2, Eye, EyeOff } from "lucide-react";
+import { X, Save, Trash2, Eye, EyeOff, Eraser } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
-import type { MailAccount } from "@/types/mail";
+import { auth } from "@/config/firebase";
+import type { MailAccount, SignatureData } from "@/types/mail";
 import { ACCOUNT_COLORS, DEFAULT_ACCOUNT_COLOR } from "@/lib/mail/constants";
+import MailSignatureEditor from "./MailSignatureEditor";
 
 export interface MailAccountFormValues {
   email: string;
   displayName: string;
   password: string;
   signature: string;
+  signatureData: SignatureData | null;
   imapServer: string;
   imapPort: number;
   imapSecure: boolean;
@@ -33,6 +36,7 @@ const empty: MailAccountFormValues = {
   displayName: "",
   password: "",
   signature: "",
+  signatureData: null,
   imapServer: "imap.ionos.fr",
   imapPort: 993,
   imapSecure: true,
@@ -61,6 +65,7 @@ export default function MailAccountModal({
         displayName: account.displayName,
         password: "",
         signature: account.signature ?? "",
+        signatureData: account.signatureData ?? null,
         imapServer: account.imapServer,
         imapPort: account.imapPort,
         imapSecure: account.imapSecure,
@@ -245,37 +250,74 @@ export default function MailAccountModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Signature (HTML supporté)
-            </label>
-            <textarea
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium">Signature</label>
+              <button
+                type="button"
+                onClick={() => {
+                  set("signature", "");
+                  set("signatureData", null);
+                }}
+                disabled={!values.signature && !values.signatureData}
+                title="Vide uniquement le champ signature (ne supprime pas le compte)"
+                className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg disabled:opacity-40 ${
+                  isDarkMode
+                    ? "text-gray-300 hover:bg-gray-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Eraser size={14} />
+                Effacer la signature
+              </button>
+            </div>
+            <MailSignatureEditor
               value={values.signature}
-              onChange={(e) => set("signature", e.target.value)}
-              rows={4}
-              className={field}
-              placeholder="Cordialement,..."
+              data={values.signatureData}
+              onChange={(html, sigData) => {
+                set("signature", html);
+                set("signatureData", sigData);
+              }}
+              userId={auth.currentUser?.uid ?? null}
+              accountId={account?.id ?? null}
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            {account && onDelete && (
+          <div
+            className={`flex items-center justify-between gap-2 pt-3 mt-2 border-t ${
+              isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
+            <div>
+              {account && onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(account)}
+                  className="px-4 py-2 rounded-lg border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Supprimer le compte
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => onDelete(account)}
-                className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                onClick={onClose}
+                className={`px-4 py-2 rounded-lg ${
+                  isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                }`}
               >
-                <Trash2 size={16} />
-                Supprimer
+                Annuler
               </button>
-            )}
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-            >
-              <Save size={16} />
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                <Save size={16} />
+                {saving ? "Enregistrement..." : "Enregistrer"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

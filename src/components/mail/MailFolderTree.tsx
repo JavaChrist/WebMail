@@ -10,7 +10,10 @@ interface MailFolderTreeProps {
   unreadCounts: Record<string, number>;
   onSelectFolder: (folderId: string) => void;
   onDropMessage: (messageId: string, folderId: string) => void;
-  onContextAction?: (node: MailFolderNode, action: "rename" | "delete") => void;
+  onContextAction?: (
+    node: MailFolderNode,
+    action: "rename" | "delete" | "empty" | "subfolder"
+  ) => void;
 }
 
 export default function MailFolderTree({

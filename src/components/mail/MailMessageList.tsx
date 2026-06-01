@@ -1,7 +1,23 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Paperclip, RefreshCw, Inbox, MoreHorizontal, Check } from "lucide-react";
+import {
+  Paperclip,
+  RefreshCw,
+  Inbox,
+  MoreHorizontal,
+  Check,
+  List,
+  PanelRight,
+  PanelBottom,
+  LayoutPanelTop,
+  Star,
+  Mail,
+  MailOpen,
+  Archive,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react";
 import { format, isToday, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useTheme } from "@/context/ThemeContext";
@@ -37,10 +53,23 @@ export default function MailMessageList() {
     moveToFolder,
     openCompose,
     showToast,
+    viewMode,
+    setViewMode,
+    markRead,
+    openDraft,
   } = useMail();
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [moveOpen, setMoveOpen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
+
+  const layoutOptions = [
+    { mode: "list" as const, label: "Liste seule", icon: List },
+    { mode: "right" as const, label: "Aperçu à droite", icon: PanelRight },
+    { mode: "bottom" as const, label: "Aperçu en bas", icon: PanelBottom },
+  ];
+  const LayoutIcon =
+    layoutOptions.find((o) => o.mode === viewMode)?.icon ?? LayoutPanelTop;
 
   const currentFolder = folders.find((f) => f.id === selectedFolderId);
 
@@ -118,7 +147,11 @@ export default function MailMessageList() {
           hasTarget={targets.length > 0}
           hasSingle={!!selectedMessage}
           flagged={selectedMessage?.starred}
-          onAssistant={() => showToast("Assistant IA bientôt disponible")}
+          onAssistant={() =>
+            showToast(
+              "Assistant IA disponible à l'ouverture d'un message (Traduire) et dans la rédaction (Corriger/Reformuler/Traduire)"
+            )
+          }
           onDelete={() => runOnTargets((m) => trashMessage(m))}
           onArchive={() => runOnTargets((m) => archiveMessage(m))}
           onSpam={() => runOnTargets((m) => spamMessage(m))}
@@ -182,15 +215,76 @@ export default function MailMessageList() {
           </h2>
           <p className="text-xs opacity-60">{messages.length} message(s)</p>
         </div>
-        <button
-          type="button"
-          title="Options du dossier"
-          className={`p-2 rounded-lg ${
-            isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-          }`}
-        >
-          <MoreHorizontal size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Sélecteur de disposition */}
+          <div className="relative">
+            <button
+              type="button"
+              title="Disposition de l'aperçu"
+              onClick={() => setLayoutOpen((v) => !v)}
+              className={`p-2 rounded-lg ${
+                isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+              }`}
+            >
+              <LayoutIcon size={18} />
+            </button>
+            {layoutOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setLayoutOpen(false)}
+                />
+                <div
+                  className={`absolute z-20 right-0 top-11 w-52 rounded-lg shadow-lg border py-1 ${
+                    isDarkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  }`}
+                >
+                  <div className="px-3 py-1.5 text-xs font-semibold opacity-60">
+                    Disposition
+                  </div>
+                  {layoutOptions.map((opt) => {
+                    const OptIcon = opt.icon;
+                    const active = opt.mode === viewMode;
+                    return (
+                      <button
+                        key={opt.mode}
+                        type="button"
+                        onClick={() => {
+                          setViewMode(opt.mode);
+                          setLayoutOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm ${
+                          active
+                            ? isDarkMode
+                              ? "bg-blue-500/15 text-blue-300"
+                              : "bg-blue-50 text-blue-700"
+                            : isDarkMode
+                            ? "hover:bg-gray-700"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <OptIcon size={16} />
+                        <span className="flex-1 text-left">{opt.label}</span>
+                        {active && <Check size={14} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            title="Options du dossier"
+            className={`p-2 rounded-lg ${
+              isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+            }`}
+          >
+            <MoreHorizontal size={18} />
+          </button>
+        </div>
       </div>
 
       {/* En-tête de colonnes léger */}
@@ -236,7 +330,11 @@ export default function MailMessageList() {
                   key={message.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, message)}
-                  onClick={() => openMessage(message)}
+                  onClick={() =>
+                    currentFolder?.folderType === "drafts" || message.isDraft
+                      ? openDraft(message)
+                      : openMessage(message)
+                  }
                   className={`group flex gap-3 px-4 py-3 cursor-pointer transition-colors ${
                     isSelected || isChecked
                       ? isDarkMode
@@ -297,9 +395,82 @@ export default function MailMessageList() {
                     </div>
                   </div>
 
-                  {!message.read && (
-                    <span className="flex-shrink-0 mt-2 w-2 h-2 rounded-full bg-blue-500" />
-                  )}
+                  <div className="flex-shrink-0 flex items-center self-center">
+                    {/* Actions rapides au survol / focus clavier */}
+                    <div className="hidden group-hover:flex group-focus-within:flex items-center gap-0.5">
+                      {(() => {
+                        const quick = (
+                          onClick: () => void,
+                          title: string,
+                          icon: React.ReactNode,
+                          extra = ""
+                        ) => (
+                          <button
+                            type="button"
+                            title={title}
+                            aria-label={title}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onClick();
+                            }}
+                            className={`p-1 rounded transition-colors ${
+                              isDarkMode
+                                ? "hover:bg-gray-700"
+                                : "hover:bg-gray-200"
+                            } ${extra}`}
+                          >
+                            {icon}
+                          </button>
+                        );
+                        return (
+                          <>
+                            {quick(
+                              () => toggleStar(message),
+                              message.starred
+                                ? "Retirer des favoris"
+                                : "Ajouter aux favoris",
+                              <Star
+                                size={15}
+                                className={message.starred ? "text-yellow-400" : ""}
+                                fill={message.starred ? "currentColor" : "none"}
+                              />
+                            )}
+                            {quick(
+                              () => markRead(message, !message.read),
+                              message.read
+                                ? "Marquer comme non lu"
+                                : "Marquer comme lu",
+                              message.read ? (
+                                <Mail size={15} />
+                              ) : (
+                                <MailOpen size={15} />
+                              )
+                            )}
+                            {quick(
+                              () => archiveMessage(message),
+                              "Archiver",
+                              <Archive size={15} />
+                            )}
+                            {quick(
+                              () => spamMessage(message),
+                              "Spam",
+                              <ShieldAlert size={15} />
+                            )}
+                            {quick(
+                              () => trashMessage(message),
+                              "Corbeille",
+                              <Trash2 size={15} />,
+                              "hover:text-red-500"
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                    {/* Pastille non-lu (masquée au survol pour laisser place aux actions) */}
+                    {!message.read && (
+                      <span className="group-hover:hidden group-focus-within:hidden ml-1 w-2 h-2 rounded-full bg-blue-500" />
+                    )}
+                  </div>
                 </li>
               );
             })}

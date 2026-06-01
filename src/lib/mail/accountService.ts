@@ -16,6 +16,7 @@ import type {
   MailAccount,
   CreateMailAccountInput,
   UpdateMailAccountInput,
+  SignatureData,
 } from "@/types/mail";
 import { DEFAULT_ACCOUNT_COLOR } from "./constants";
 import { encryptPassword } from "./crypto";
@@ -38,6 +39,7 @@ function mapAccount(id: string, data: Record<string, unknown>): MailAccount {
     email: data.email as string,
     displayName: (data.displayName as string) ?? (data.email as string),
     signature: data.signature as string | undefined,
+    signatureData: (data.signatureData as SignatureData) ?? null,
     password: (data.password as string) ?? "",
     imapServer: (data.imapServer as string) ?? "",
     imapPort: (data.imapPort as number) ?? 993,
@@ -96,6 +98,7 @@ export async function createAccount(
     email: input.email,
     displayName: input.displayName || input.email,
     signature: input.signature ?? "",
+    signatureData: input.signatureData ?? null,
     password,
     imapServer: input.imapServer,
     imapPort: input.imapPort,
@@ -134,8 +137,42 @@ export async function updateAccount(
   await updateDoc(doc(db, COLLECTION, accountId), payload as Record<string, any>);
 }
 
-export async function deleteAccount(accountId: string): Promise<void> {
+/** Supprime par lots tous les documents d'une collection liés au compte (scoping strict). */
+async function deleteByAccount(
+  collectionName: string,
+  accountId: string,
+  userId?: string
+): Promise<number> {
+  const constraints = [where("accountId", "==", accountId)];
+  if (userId) constraints.push(where("userId", "==", userId));
+  const snap = await getDocs(query(collection(db, collectionName), ...constraints));
+  const docs = snap.docs;
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = writeBatch(db);
+    docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+  return docs.length;
+}
+
+/**
+ * Supprime un compte ET, en cascade, tous ses dossiers (`mailFolders`) et
+ * messages (`mailMessages`), scopés par `accountId` (+ `userId` du compte),
+ * par lots ≤ 400 docs. Évite les dossiers/messages orphelins.
+ */
+export async function deleteAccount(
+  accountId: string
+): Promise<{ folders: number; messages: number }> {
+  const accSnap = await getDoc(doc(db, COLLECTION, accountId));
+  const userId = accSnap.exists()
+    ? (accSnap.data().userId as string | undefined)
+    : undefined;
+
+  const messages = await deleteByAccount("mailMessages", accountId, userId);
+  const folders = await deleteByAccount("mailFolders", accountId, userId);
   await deleteDoc(doc(db, COLLECTION, accountId));
+
+  return { folders, messages };
 }
 
 export async function setActiveAccount(

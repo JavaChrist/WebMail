@@ -4,14 +4,27 @@ import {
   where,
   getDocs,
   getDoc,
+  addDoc,
   updateDoc,
   deleteDoc,
   doc,
   Timestamp,
   orderBy,
+  writeBatch,
+  getCountFromServer,
+  limit as fbLimit,
 } from "firebase/firestore";
 import { db } from "@/config/firebase";
-import type { MailMessage, MailAddress } from "@/types/mail";
+import type { MailMessage, MailAddress, MailAttachment } from "@/types/mail";
+
+function parseAddressesString(value?: string): MailAddress[] {
+  if (!value) return [];
+  return value
+    .split(/[,;]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((email) => ({ email }));
+}
 
 const COLLECTION = "mailMessages";
 
@@ -59,6 +72,7 @@ function mapMessage(id: string, data: Record<string, unknown>): MailMessage {
     hasAttachments: Boolean(data.hasAttachments),
     attachments: data.attachments as MailMessage["attachments"],
     flags: data.flags as string[] | undefined,
+    isDraft: Boolean(data.isDraft),
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),
   };
@@ -76,6 +90,29 @@ export async function listMessagesByFolder(
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapMessage(d.id, d.data()));
+}
+
+/**
+ * Récupère un ensemble de messages de l'utilisateur (tous comptes/dossiers)
+ * pour la recherche globale. Firestore ne gère pas le full-text : on rapatrie
+ * un lot borné (par défaut 500) puis on filtre `contains` côté client.
+ *
+ * Pas de `orderBy` ici pour éviter d'imposer un index composite
+ * (userId + timestamp) : le tri par date est fait côté client.
+ */
+export async function searchMessagesByUser(
+  userId: string,
+  max = 500
+): Promise<MailMessage[]> {
+  const q = query(
+    collection(db, COLLECTION),
+    where("userId", "==", userId),
+    fbLimit(max)
+  );
+  const snap = await getDocs(q);
+  return snap.docs
+    .map((d) => mapMessage(d.id, d.data()))
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 export async function listStarredMessages(
@@ -174,4 +211,101 @@ export async function deleteMessagePermanently(
   messageId: string
 ): Promise<void> {
   await deleteDoc(doc(db, COLLECTION, messageId));
+}
+
+export interface SaveDraftInput {
+  id?: string;
+  userId: string;
+  accountId: string;
+  draftsFolderId: string;
+  from: MailAddress;
+  to?: string;
+  cc?: string;
+  bcc?: string;
+  subject?: string;
+  contentHtml?: string;
+  attachments?: MailAttachment[];
+}
+
+/**
+ * Crée ou met à jour un brouillon (`isDraft: true`) dans le dossier Brouillons
+ * du compte (scoping strict par accountId/userId). Renvoie l'id du document.
+ */
+export async function saveDraft(input: SaveDraftInput): Promise<string> {
+  const now = Timestamp.now();
+  const html = input.contentHtml ?? "";
+  const attachments = input.attachments ?? [];
+  const payload = {
+    userId: input.userId,
+    accountId: input.accountId,
+    folderIds: [input.draftsFolderId],
+    primaryFolderId: input.draftsFolderId,
+    from: input.from,
+    to: parseAddressesString(input.to),
+    cc: parseAddressesString(input.cc),
+    bcc: parseAddressesString(input.bcc),
+    subject: input.subject || "(sans objet)",
+    snippet: html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160),
+    contentHtml: html,
+    contentText: "",
+    timestamp: now,
+    read: true,
+    starred: false,
+    isDraft: true,
+    hasAttachments: attachments.length > 0,
+    attachments,
+    flags: [],
+    updatedAt: now,
+  };
+
+  if (input.id) {
+    await updateDoc(doc(db, COLLECTION, input.id), payload);
+    return input.id;
+  }
+  const ref = await addDoc(collection(db, COLLECTION), {
+    ...payload,
+    messageId: `draft_${Date.now()}@webmail`,
+    imapUid: null,
+    createdAt: now,
+  });
+  return ref.id;
+}
+
+/** Compte les messages d'un dossier (scopé par compte). */
+export async function countMessagesInFolder(
+  accountId: string,
+  folderId: string
+): Promise<number> {
+  const q = query(
+    collection(db, COLLECTION),
+    where("accountId", "==", accountId),
+    where("primaryFolderId", "==", folderId)
+  );
+  const snap = await getCountFromServer(q);
+  return snap.data().count;
+}
+
+/**
+ * Supprime DÉFINITIVEMENT tous les messages d'un dossier (scopé par compte),
+ * par lots de 400 pour rester sous les limites Firestore. Renvoie le nombre
+ * de messages supprimés.
+ */
+export async function emptyFolder(
+  accountId: string,
+  folderId: string
+): Promise<number> {
+  const q = query(
+    collection(db, COLLECTION),
+    where("accountId", "==", accountId),
+    where("primaryFolderId", "==", folderId)
+  );
+  const snap = await getDocs(q);
+  const docs = snap.docs;
+  for (let i = 0; i < docs.length; i += 400) {
+    const slice = docs.slice(i, i + 400);
+    const batch = writeBatch(db);
+    slice.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+  return docs.length;
 }

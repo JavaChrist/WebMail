@@ -5,7 +5,9 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from "firebase/auth";
+import { Eye, EyeOff } from "lucide-react";
 import { auth } from "@/config/firebase";
 
 export default function Login() {
@@ -13,7 +15,10 @@ export default function Login() {
   const pathname = usePathname();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   // ✅ Purger les champs quand l'utilisateur arrive sur /login
   useEffect(() => {
@@ -28,9 +33,46 @@ export default function Login() {
     }
   }, [pathname]);
 
+  const handleResetPassword = async () => {
+    setError(null);
+    setInfo(null);
+    if (!email.trim()) {
+      setError("Veuillez d'abord saisir votre adresse email ci-dessus");
+      return;
+    }
+    setResetting(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setInfo(`Un email de réinitialisation a été envoyé à ${email.trim()}`);
+    } catch (err: any) {
+      let msg = "Impossible d'envoyer l'email de réinitialisation";
+      switch (err.code) {
+        case "auth/invalid-email":
+          msg = "L'adresse email n'est pas valide";
+          break;
+        case "auth/missing-email":
+          msg = "Veuillez saisir votre adresse email";
+          break;
+        case "auth/user-not-found":
+          msg = "Aucun compte n'existe avec cette adresse email";
+          break;
+        case "auth/too-many-requests":
+          msg = "Trop de tentatives. Veuillez réessayer plus tard";
+          break;
+        case "auth/network-request-failed":
+          msg = "Erreur de connexion réseau. Vérifiez votre connexion internet";
+          break;
+      }
+      setError(msg);
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -114,15 +156,36 @@ export default function Login() {
           autoComplete="off"
           required
         />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          className="bg-gray-800 text-white border border-gray-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="off"
-          required
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Mot de passe"
+            className="w-full bg-gray-800 text-white border border-gray-600 rounded-lg p-3 pr-12 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="off"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            tabIndex={-1}
+            aria-label={
+              showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+            }
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={handleResetPassword}
+          disabled={resetting}
+          className="self-end text-sm text-blue-400 hover:text-blue-300 disabled:opacity-50"
+        >
+          {resetting ? "Envoi en cours..." : "Mot de passe oublié ?"}
+        </button>
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
@@ -139,6 +202,7 @@ export default function Login() {
       </button>
 
       {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
+      {info && <p className="text-green-400 mt-4 text-center">{info}</p>}
 
       <p className="mt-4 text-center text-gray-400">
         Pas encore de compte ?{" "}

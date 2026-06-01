@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Star,
   Archive,
@@ -10,15 +11,46 @@ import {
   Mail,
   Paperclip,
   ArrowLeft,
+  Download,
+  Eye,
+  Loader2,
+  Languages,
+  X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useTheme } from "@/context/ThemeContext";
 import { useMail } from "@/context/MailContext";
-import type { MailMessage } from "@/types/mail";
+import { auth } from "@/config/firebase";
+import type { MailAttachment, MailMessage } from "@/types/mail";
 
 function addressLabel(addr: { email: string; name?: string }): string {
   return addr.name ? `${addr.name} <${addr.email}>` : addr.email;
+}
+
+function formatBytes(bytes?: number): string {
+  if (typeof bytes !== "number") return "";
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function canPreview(contentType?: string): boolean {
+  if (!contentType) return false;
+  return contentType.startsWith("image/") || contentType === "application/pdf";
+}
+
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(div|p|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export default function MailMessageView() {
@@ -32,7 +64,19 @@ export default function MailMessageView() {
     openCompose,
     activeAccount,
     closeMessage,
+    viewMode,
+    searchActive,
+    showToast,
   } = useMail();
+
+  const [loadingAtt, setLoadingAtt] = useState<Set<number>>(new Set());
+  const [translating, setTranslating] = useState(false);
+  const [translation, setTranslation] = useState<string | null>(null);
+
+  // Réinitialise la traduction quand on change de message.
+  useEffect(() => {
+    setTranslation(null);
+  }, [selectedMessage?.id]);
 
   if (!selectedMessage) {
     return (
@@ -63,6 +107,106 @@ export default function MailMessageView() {
       subject: `${forward ? "Tr" : "Re"}: ${message.subject}`,
       body: quoted,
     });
+  };
+
+  const handleAttachment = async (
+    att: MailAttachment,
+    index: number,
+    mode: "download" | "open"
+  ) => {
+    if (!auth.currentUser) {
+      showToast("Vous devez être connecté", "error");
+      return;
+    }
+    setLoadingAtt((prev) => new Set(prev).add(index));
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const params = new URLSearchParams({
+        accountId: message.accountId,
+        messageId: message.id,
+        index: String(att.index ?? index),
+        disposition: mode === "open" ? "inline" : "attachment",
+      });
+      if (att.filename) params.set("filename", att.filename);
+
+      const res = await fetch(`/api/mail/attachment?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Pièce jointe introuvable");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      if (mode === "open") {
+        window.open(url, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = att.filename || "piece-jointe";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Erreur de téléchargement",
+        "error"
+      );
+    } finally {
+      setLoadingAtt((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  };
+
+  const handleTranslate = async () => {
+    if (!auth.currentUser) {
+      showToast("Vous devez être connecté", "error");
+      return;
+    }
+    const text =
+      message.contentText && message.contentText.trim()
+        ? message.contentText
+        : htmlToPlainText(message.contentHtml || "");
+    if (!text.trim()) {
+      showToast("Aucun texte à traduire", "error");
+      return;
+    }
+    setTranslating(true);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch("/api/mail/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text,
+          action: "translate",
+          targetLang: "français",
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Erreur de traduction");
+      }
+      const data = await res.json();
+      setTranslation(data.result as string);
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Erreur de traduction",
+        "error"
+      );
+    } finally {
+      setTranslating(false);
+    }
   };
 
   const actionBtn = (
@@ -98,7 +242,7 @@ export default function MailMessageView() {
           () => closeMessage(),
           "Retour",
           <ArrowLeft size={18} />,
-          "lg:hidden"
+          viewMode === "list" || searchActive ? "" : "lg:hidden"
         )}
         {actionBtn(
           () => toggleStar(message),
@@ -116,6 +260,15 @@ export default function MailMessageView() {
           "Corbeille",
           <Trash2 size={18} />,
           "text-red-500"
+        )}
+        {actionBtn(
+          handleTranslate,
+          "Traduire en français",
+          translating ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Languages size={18} className="text-violet-500" />
+          )
         )}
         <div className="flex-1" />
         {actionBtn(() => buildReply(false), "Répondre", <Reply size={18} />)}
@@ -153,22 +306,101 @@ export default function MailMessageView() {
 
         {message.attachments && message.attachments.length > 0 && (
           <div
-            className={`px-6 py-3 border-b flex flex-wrap gap-2 ${
+            className={`px-6 py-3 border-b ${
               isDarkMode ? "border-gray-800" : "border-gray-200"
             }`}
           >
-            {message.attachments.map((att, i) => (
-              <a
-                key={i}
-                href={att.url || "#"}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
-                  isDarkMode ? "bg-gray-800" : "bg-gray-100"
+            <div className="text-xs font-medium opacity-60 mb-2">
+              {message.attachments.length} pièce(s) jointe(s)
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {message.attachments.map((att, i) => {
+                const loading = loadingAtt.has(i);
+                const previewable = canPreview(att.contentType);
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-2 pl-3 pr-1.5 py-1.5 rounded-lg text-sm border ${
+                      isDarkMode
+                        ? "bg-gray-800 border-gray-700"
+                        : "bg-gray-50 border-gray-200"
+                    }`}
+                  >
+                    <Paperclip size={14} className="flex-shrink-0 opacity-60" />
+                    <div className="min-w-0">
+                      <div className="truncate max-w-[180px]">
+                        {att.filename}
+                      </div>
+                      {formatBytes(att.size) && (
+                        <div className="text-xs opacity-50">
+                          {formatBytes(att.size)}
+                        </div>
+                      )}
+                    </div>
+                    {loading ? (
+                      <span className="p-1.5">
+                        <Loader2 size={16} className="animate-spin" />
+                      </span>
+                    ) : (
+                      <div className="flex items-center">
+                        {previewable && (
+                          <button
+                            type="button"
+                            title="Ouvrir / aperçu"
+                            onClick={() => handleAttachment(att, i, "open")}
+                            className={`p-1.5 rounded-md ${
+                              isDarkMode
+                                ? "hover:bg-gray-700"
+                                : "hover:bg-gray-200"
+                            }`}
+                          >
+                            <Eye size={16} />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          title="Télécharger"
+                          onClick={() => handleAttachment(att, i, "download")}
+                          className={`p-1.5 rounded-md ${
+                            isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+                          }`}
+                        >
+                          <Download size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {translation !== null && (
+          <div
+            className={`mx-6 mt-4 rounded-lg border p-3 ${
+              isDarkMode
+                ? "border-violet-500/40 bg-violet-500/10"
+                : "border-violet-300 bg-violet-50"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-violet-500">
+                <Languages size={14} />
+                Traduction (français)
+              </div>
+              <button
+                type="button"
+                onClick={() => setTranslation(null)}
+                title="Masquer la traduction (voir l'original)"
+                className={`p-1 rounded ${
+                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
                 }`}
               >
-                <Paperclip size={14} />
-                <span className="truncate max-w-[180px]">{att.filename}</span>
-              </a>
-            ))}
+                <X size={14} />
+              </button>
+            </div>
+            <div className="text-sm whitespace-pre-wrap">{translation}</div>
           </div>
         )}
 

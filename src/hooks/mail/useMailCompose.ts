@@ -10,6 +10,7 @@ export interface ComposePrefill {
   bcc?: string;
   subject?: string;
   body?: string;
+  draftMessageId?: string;
 }
 
 const emptyDraft = (accountId: string): ComposeDraft => ({
@@ -35,6 +36,7 @@ export function useMailCompose() {
         bcc: prefill?.bcc ?? "",
         subject: prefill?.subject ?? "",
         body: prefill?.body ?? "",
+        draftMessageId: prefill?.draftMessageId,
       });
       setIsOpen(true);
     },

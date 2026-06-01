@@ -1,10 +1,14 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Menu,
+  PanelLeftClose,
+  Home,
   Mail,
   Calendar,
   Users,
@@ -15,6 +19,8 @@ import {
   HelpCircle,
   Settings,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useMail } from "@/context/MailContext";
@@ -24,9 +30,19 @@ interface MailTopBarProps {
   onToggleSidebar: () => void;
 }
 
+const NAV_ITEMS = [
+  { href: "/app", icon: Home, label: "Accueil" },
+  { href: "/calendar", icon: Calendar, label: "Calendrier" },
+  { href: "/email", icon: Mail, label: "Emails" },
+  { href: "/contacts", icon: Users, label: "Contacts" },
+];
+
+const APP_MENU_WIDTH = 240;
+
 export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const {
     searchTerm,
     setSearchTerm,
@@ -34,6 +50,43 @@ export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
     syncActiveAccount,
     totalUnread,
   } = useMail();
+
+  const [appMenuOpen, setAppMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+
+  const openAppMenu = () => {
+    const rect = menuBtnRef.current?.getBoundingClientRect();
+    if (rect) {
+      const margin = 8;
+      let left = rect.left;
+      if (left + APP_MENU_WIDTH > window.innerWidth - margin) {
+        left = window.innerWidth - margin - APP_MENU_WIDTH;
+      }
+      if (left < margin) left = margin;
+      setMenuPos({ top: rect.bottom + 6, left });
+    }
+    setAppMenuOpen(true);
+  };
+
+  useEffect(() => {
+    if (!appMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAppMenuOpen(false);
+    };
+    const close = () => setAppMenuOpen(false);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [appMenuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -56,14 +109,28 @@ export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
           : "bg-white border-gray-200 text-gray-900"
       }`}
     >
-      {/* Gauche : hamburger + logo */}
+      {/* Gauche : menu de navigation de l'application (hamburger) */}
       <button
+        ref={menuBtnRef}
         type="button"
-        onClick={onToggleSidebar}
-        title="Replier / déplier le menu"
+        onClick={() => (appMenuOpen ? setAppMenuOpen(false) : openAppMenu())}
+        title="Menu de navigation"
+        aria-label="Menu de navigation de l'application"
+        aria-expanded={appMenuOpen}
         className={iconBtn}
       >
         <Menu size={20} />
+      </button>
+
+      {/* Contrôle distinct : replier / déplier la liste des dossiers */}
+      <button
+        type="button"
+        onClick={onToggleSidebar}
+        title="Replier / déplier les dossiers"
+        aria-label="Replier ou déplier le panneau des dossiers"
+        className={iconBtn}
+      >
+        <PanelLeftClose size={20} />
       </button>
 
       <Link href="/app" className="flex items-center gap-2 mr-1">
@@ -150,6 +217,93 @@ export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
           <LogOut size={20} />
         </button>
       </div>
+
+      {/* Menu de navigation de l'application (portail, au-dessus de tout) */}
+      {appMenuOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[190]"
+              onClick={() => setAppMenuOpen(false)}
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: menuPos.top,
+                left: menuPos.left,
+                width: APP_MENU_WIDTH,
+                zIndex: 200,
+              }}
+              className={`rounded-lg shadow-xl border py-1.5 text-sm ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700 text-gray-100"
+                  : "bg-white border-gray-200 text-gray-900"
+              }`}
+            >
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setAppMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-2 ${
+                      active
+                        ? isDarkMode
+                          ? "bg-blue-500/15 text-blue-300"
+                          : "bg-blue-50 text-blue-700"
+                        : isDarkMode
+                        ? "hover:bg-gray-700"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span className="flex-1">{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              <div
+                className={`my-1.5 border-t ${
+                  isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
+              />
+
+              <button
+                type="button"
+                onClick={() => {
+                  toggleTheme();
+                  setAppMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2 ${
+                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                }`}
+              >
+                {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                <span className="flex-1 text-left">
+                  {isDarkMode ? "Mode clair" : "Mode sombre"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setAppMenuOpen(false);
+                  handleLogout();
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-2 text-red-500 ${
+                  isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+                }`}
+              >
+                <LogOut size={18} />
+                <span className="flex-1 text-left">Déconnexion</span>
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
     </header>
   );
 }

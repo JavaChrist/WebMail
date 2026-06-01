@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Images de signature : lecture publique (les destinataires des e-mails
+    // doivent pouvoir charger les images), écriture réservée au propriétaire.
+    match /signatures/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Tout le reste est interdit par défaut.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

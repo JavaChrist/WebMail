@@ -11,6 +11,8 @@ interface MailFolderModalProps {
   isOpen: boolean;
   mode: FolderModalMode;
   folder?: MailFolderNode | null;
+  /** Parent pré-sélectionné lors d'une création « Nouveau sous-dossier ». */
+  presetParentId?: string | null;
   folders: MailFolder[];
   onClose: () => void;
   onCreate: (name: string, parentId: string | null) => Promise<void>;
@@ -22,6 +24,7 @@ export default function MailFolderModal({
   isOpen,
   mode,
   folder,
+  presetParentId,
   folders,
   onClose,
   onCreate,
@@ -43,9 +46,9 @@ export default function MailFolderModal({
       setParentId(folder.parentFolderId ?? "");
     } else {
       setName("");
-      setParentId("");
+      setParentId(presetParentId ?? "");
     }
-  }, [isOpen, mode, folder]);
+  }, [isOpen, mode, folder, presetParentId]);
 
   if (!isOpen) return null;
 
@@ -54,9 +57,12 @@ export default function MailFolderModal({
     ? folders.filter((f) => f.parentFolderId === folder.id).length
     : 0;
 
-  // Dossiers personnalisés éligibles comme parent (exclut le dossier lui-même).
+  // Parents valides : Archives + tous les dossiers personnalisés (exclut le
+  // dossier lui-même). Permet de créer des sous-dossiers dans « Archives ».
   const parentOptions = folders.filter(
-    (f) => f.folderType === "custom" && f.id !== folder?.id
+    (f) =>
+      (f.folderType === "custom" || f.folderType === "archive") &&
+      f.id !== folder?.id
   );
 
   const field = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${

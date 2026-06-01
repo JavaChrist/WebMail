@@ -8,10 +8,11 @@ import MailSidebar from "./MailSidebar";
 import MailMessageList from "./MailMessageList";
 import MailMessageView from "./MailMessageView";
 import MailComposeModal from "./MailComposeModal";
+import MailSearchResults from "./MailSearchResults";
 
 export default function MailLayout() {
   const { isDarkMode } = useTheme();
-  const { selectedMessage, toast } = useMail();
+  const { selectedMessage, toast, viewMode, searchActive } = useMail();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -49,24 +50,88 @@ export default function MailLayout() {
           <MailSidebar collapsed={collapsed} />
         </div>
 
-        {/* Zone liste + détail */}
-        <div className="flex-1 flex min-w-0">
-          <div
-            className={`w-full lg:w-[400px] flex-shrink-0 ${
-              selectedMessage ? "hidden lg:flex lg:flex-col" : "flex flex-col"
-            }`}
-          >
-            <MailMessageList />
+        {/* Recherche active : résultats agrégés multi-comptes en pleine largeur,
+            remplacés par la vue message au clic (bouton retour). */}
+        {searchActive ? (
+          <div className="flex-1 flex min-w-0">
+            <div
+              className={`flex-1 min-w-0 ${
+                selectedMessage ? "hidden" : "flex flex-col"
+              }`}
+            >
+              <MailSearchResults />
+            </div>
+            <div
+              className={`flex-1 min-w-0 ${
+                selectedMessage ? "flex flex-col" : "hidden"
+              }`}
+            >
+              <MailMessageView />
+            </div>
           </div>
-
-          <div
-            className={`flex-1 min-w-0 ${
-              selectedMessage ? "flex flex-col" : "hidden lg:flex lg:flex-col"
-            }`}
-          >
-            <MailMessageView />
+        ) : /* Zone liste + détail selon le mode d'affichage.
+            « Liste seule » est le mode par défaut ET le repli pour toute
+            valeur inattendue, afin que la zone centrale ne soit jamais vide. */
+        viewMode === "right" ? (
+          <div className="flex-1 flex min-w-0">
+            <div
+              className={`w-full lg:w-[400px] flex-shrink-0 ${
+                selectedMessage ? "hidden lg:flex lg:flex-col" : "flex flex-col"
+              }`}
+            >
+              <MailMessageList />
+            </div>
+            <div
+              className={`flex-1 min-w-0 ${
+                selectedMessage ? "flex flex-col" : "hidden lg:flex lg:flex-col"
+              }`}
+            >
+              <MailMessageView />
+            </div>
           </div>
-        </div>
+        ) : viewMode === "bottom" ? (
+          <div className="flex-1 flex flex-col min-w-0">
+            <div
+              className={`min-h-0 ${
+                selectedMessage
+                  ? `hidden md:flex md:flex-col md:h-1/2 md:border-b ${
+                      isDarkMode ? "md:border-gray-800" : "md:border-gray-200"
+                    }`
+                  : "flex flex-col flex-1"
+              }`}
+            >
+              <MailMessageList />
+            </div>
+            <div
+              className={`min-h-0 ${
+                selectedMessage
+                  ? "flex flex-col flex-1 md:h-1/2 md:flex-none"
+                  : "hidden"
+              }`}
+            >
+              <MailMessageView />
+            </div>
+          </div>
+        ) : (
+          // Mode « Liste seule » (défaut) : la liste occupe toute la largeur ;
+          // la vue message la remplace en plein écran quand un message est ouvert.
+          <div className="flex-1 flex min-w-0">
+            <div
+              className={`flex-1 min-w-0 ${
+                selectedMessage ? "hidden" : "flex flex-col"
+              }`}
+            >
+              <MailMessageList />
+            </div>
+            <div
+              className={`flex-1 min-w-0 ${
+                selectedMessage ? "flex flex-col" : "hidden"
+              }`}
+            >
+              <MailMessageView />
+            </div>
+          </div>
+        )}
       </div>
 
       <MailComposeModal />

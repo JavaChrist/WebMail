@@ -9,13 +9,15 @@ export default function Home() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/login");
-      }
+      router.replace(user ? "/email" : "/login");
     });
 
     return () => unsubscribe();
   }, [router]);
 
-  return null;
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500" />
+    </div>
+  );
 }

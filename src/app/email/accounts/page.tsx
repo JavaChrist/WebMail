@@ -17,6 +17,7 @@ import {
 import MailAccountModal, {
   type MailAccountFormValues,
 } from "@/components/mail/MailAccountModal";
+import MailConfirmModal from "@/components/mail/MailConfirmModal";
 
 interface ToastMsg {
   id: number;
@@ -31,6 +32,8 @@ export default function EmailAccountsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<MailAccount | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MailAccount | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
@@ -75,6 +78,7 @@ export default function EmailAccountsPage() {
             email: values.email,
             displayName: values.displayName,
             signature: values.signature,
+            signatureData: values.signatureData,
             password: values.password,
             imapServer: values.imapServer,
             imapPort: values.imapPort,
@@ -94,6 +98,7 @@ export default function EmailAccountsPage() {
             email: values.email,
             displayName: values.displayName,
             signature: values.signature,
+            signatureData: values.signatureData,
             password: values.password,
             imapServer: values.imapServer,
             imapPort: values.imapPort,
@@ -119,17 +124,36 @@ export default function EmailAccountsPage() {
     }
   };
 
-  const handleDelete = async (account: MailAccount) => {
-    if (!window.confirm(`Supprimer le compte ${account.email} ?`)) return;
+  // Ouvre la confirmation forte (le bouton « Supprimer le compte » ne supprime jamais directement).
+  const requestDelete = async (account: MailAccount) => {
+    setModalOpen(false);
+    setDeleteTarget(account);
+  };
+
+  const confirmDelete = async () => {
+    const account = deleteTarget;
+    if (!account || !auth.currentUser) return;
+    setDeleting(true);
     try {
-      await deleteAccount(account.id);
-      setModalOpen(false);
+      const res = await deleteAccount(account.id);
+      // Si le compte supprimé était actif, en activer un autre s'il en reste.
+      if (account.isActive) {
+        const remaining = accounts.filter((a) => a.id !== account.id);
+        if (remaining[0]) {
+          await setActiveAccount(auth.currentUser.uid, remaining[0].id);
+        }
+      }
+      showToast(
+        `Compte supprimé (${res.folders} dossier(s), ${res.messages} message(s))`
+      );
+      setDeleteTarget(null);
       setEditing(null);
-      showToast("Compte supprimé");
       await load();
     } catch (error) {
       console.error(error);
       showToast("Erreur lors de la suppression", "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -254,7 +278,28 @@ export default function EmailAccountsPage() {
           setEditing(null);
         }}
         onSave={handleSave}
-        onDelete={handleDelete}
+        onDelete={requestDelete}
+      />
+
+      <MailConfirmModal
+        isOpen={!!deleteTarget}
+        title="Supprimer le compte"
+        destructive
+        confirmLabel="Supprimer définitivement"
+        loading={deleting}
+        requireText={deleteTarget?.email}
+        requireTextLabel={
+          deleteTarget
+            ? `Pour confirmer, retapez l'adresse : ${deleteTarget.email}`
+            : undefined
+        }
+        message={
+          deleteTarget
+            ? `Supprimer le compte ${deleteTarget.email} ? Cette action supprimera définitivement le compte ET tous ses dossiers et messages locaux. Action irréversible.`
+            : ""
+        }
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
       />
 
       <div className="fixed bottom-4 right-4 z-50 space-y-2">

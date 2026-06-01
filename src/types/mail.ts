@@ -17,6 +17,27 @@ export interface MailAttachment {
   contentType?: string;
   size?: number;
   url?: string;
+  /** Index de la pièce jointe dans le message (identifiant stable pour la récupération IMAP). */
+  index?: number;
+}
+
+export interface SignatureSocial {
+  /** github | linkedin | twitter | facebook | instagram | website | custom */
+  type: string;
+  url: string;
+  /** Icône personnalisée (image) ; sinon un badge texte est rendu. */
+  iconUrl?: string;
+}
+
+export interface SignatureData {
+  imageUrl?: string;
+  name?: string;
+  titles?: string[];
+  address?: string;
+  phone?: string;
+  website?: { label?: string; url?: string };
+  socials?: SignatureSocial[];
+  accentColor?: string;
 }
 
 export interface MailAccount {
@@ -25,6 +46,8 @@ export interface MailAccount {
   email: string;
   displayName: string;
   signature?: string;
+  /** Données structurées de la signature (pour ré-édition via le constructeur). */
+  signatureData?: SignatureData | null;
   password: string;
   imapServer: string;
   imapPort: number;
@@ -81,6 +104,8 @@ export interface MailMessage {
   hasAttachments: boolean;
   attachments?: MailAttachment[];
   flags?: string[];
+  /** Message en cours de rédaction stocké dans le dossier Brouillons. */
+  isDraft?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -127,6 +152,8 @@ export interface ComposeDraft {
   bcc?: string;
   subject: string;
   body: string;
+  /** Id du document brouillon en cours d'édition (pour mise à jour/suppression). */
+  draftMessageId?: string;
 }
 
 export interface SendMailPayload {

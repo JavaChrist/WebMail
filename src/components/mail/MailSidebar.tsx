@@ -10,6 +10,7 @@ import { FOLDER_ICONS } from "@/lib/mail/constants";
 import MailAccountTree from "./MailAccountTree";
 import MailQuota from "./MailQuota";
 import MailFolderModal, { type FolderModalMode } from "./MailFolderModal";
+import MailConfirmModal from "./MailConfirmModal";
 
 interface MailSidebarProps {
   collapsed?: boolean;
@@ -33,24 +34,58 @@ export default function MailSidebar({ collapsed = false }: MailSidebarProps) {
     createFolder,
     removeFolder,
     renameFolder,
+    emptyTrash,
+    countFolderMessages,
     quota,
     quotaLoading,
+    selectAccountFolder,
+    treeByAccount,
+    unreadByAccount,
+    totalUnreadByAccount,
+    folderMap,
+    showToast,
   } = useMail();
 
   const [folderModal, setFolderModal] = useState<{
     mode: FolderModalMode;
     folder: MailFolderNode | null;
+    parentId?: string | null;
   } | null>(null);
+  const [confirmEmpty, setConfirmEmpty] = useState<MailFolderNode | null>(null);
+  const [emptyCount, setEmptyCount] = useState<number | null>(null);
+  const [emptying, setEmptying] = useState(false);
 
   const handleDropMessage = (messageId: string, folderId: string) => {
     const message = messages.find((m) => m.id === messageId);
-    if (message) moveToFolder(message, folderId);
+    if (!message) return;
+    const targetFolder =
+      folderMap[folderId] ?? folders.find((f) => f.id === folderId);
+    if (targetFolder && targetFolder.accountId !== message.accountId) {
+      showToast("Déplacement inter-comptes non supporté", "error");
+      return;
+    }
+    moveToFolder(message, folderId);
   };
 
   const handleFolderContext = (
     node: MailFolderNode,
-    action: "rename" | "delete"
+    action: "rename" | "delete" | "empty" | "subfolder"
   ) => {
+    if (action === "subfolder") {
+      // S'assure que le compte du dossier parent est actif (createFolder cible
+      // le compte actif), puis ouvre la création avec le parent pré-réglé.
+      selectAccount(node.accountId);
+      setFolderModal({ mode: "create", folder: null, parentId: node.id });
+      return;
+    }
+    if (action === "empty") {
+      setConfirmEmpty(node);
+      setEmptyCount(null);
+      countFolderMessages(node.id)
+        .then(setEmptyCount)
+        .catch(() => setEmptyCount(null));
+      return;
+    }
     setFolderModal({ mode: action, folder: node });
   };
 
@@ -155,12 +190,24 @@ export default function MailSidebar({ collapsed = false }: MailSidebarProps) {
               <MailAccountTree
                 account={account}
                 isActive={isActive}
-                folderTree={isActive ? folderTree : []}
-                unreadCounts={isActive ? unreadCounts : {}}
-                totalUnread={isActive ? totalUnread : 0}
+                folderTree={
+                  isActive ? folderTree : treeByAccount[account.id] ?? []
+                }
+                unreadCounts={
+                  isActive ? unreadCounts : unreadByAccount[account.id] ?? {}
+                }
+                totalUnread={
+                  isActive
+                    ? totalUnread
+                    : totalUnreadByAccount[account.id] ?? 0
+                }
                 selectedFolderId={selectedFolderId}
                 onSelectAccount={() => selectAccount(account.id)}
-                onSelectFolder={selectFolder}
+                onSelectFolder={(folderId) =>
+                  isActive
+                    ? selectFolder(folderId)
+                    : selectAccountFolder(account.id, folderId)
+                }
                 onDropMessage={handleDropMessage}
                 onCreateFolder={() => {
                   selectAccount(account.id);
@@ -184,11 +231,38 @@ export default function MailSidebar({ collapsed = false }: MailSidebarProps) {
       isOpen={!!folderModal}
       mode={folderModal?.mode ?? "create"}
       folder={folderModal?.folder ?? null}
+      presetParentId={folderModal?.parentId ?? null}
       folders={folders}
       onClose={() => setFolderModal(null)}
       onCreate={createFolder}
       onRename={renameFolder}
       onDelete={removeFolder}
+    />
+
+    <MailConfirmModal
+      isOpen={!!confirmEmpty}
+      title="Vider la corbeille"
+      destructive
+      confirmLabel="Vider"
+      loading={emptying}
+      confirmDisabled={emptyCount === 0}
+      message={
+        emptyCount === null
+          ? "Cette action supprimera définitivement les messages de la corbeille. Action irréversible."
+          : emptyCount === 0
+          ? "La corbeille est déjà vide."
+          : `Cette action supprimera définitivement ${emptyCount} message(s). Action irréversible.`
+      }
+      onCancel={() => setConfirmEmpty(null)}
+      onConfirm={async () => {
+        setEmptying(true);
+        try {
+          await emptyTrash();
+        } finally {
+          setEmptying(false);
+          setConfirmEmpty(null);
+        }
+      }}
     />
     </>
   );
