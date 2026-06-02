@@ -1,6 +1,6 @@
 /* Service worker minimal (PWA) — cache du shell + offline basique.
    N'intercepte JAMAIS /api/* ni les origines externes (Firebase, OpenAI/Anthropic…). */
-const CACHE = "webmail-shell-v5";
+const CACHE = "webmail-shell-v6";
 const SHELL = ["/", "/icone/app-icon.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -46,15 +46,16 @@ self.addEventListener("fetch", (event) => {
     /\.(png|jpg|jpeg|svg|webp|ico|woff2?|css|js)$/.test(url.pathname)
   ) {
     event.respondWith(
-      caches.match(req).then(
-        (cached) =>
-          cached ||
-          fetch(req).then((res) => {
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+        return fetch(req)
+          .then((res) => {
             const copy = res.clone();
             caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
             return res;
           })
-      )
+          .catch(() => cached || Response.error());
+      })
     );
   }
 });
