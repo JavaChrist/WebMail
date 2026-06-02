@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 import { runAi, type AiAction } from "@/lib/mail/aiService";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const VALID_ACTIONS: AiAction[] = ["translate", "correct", "rephrase"];

@@ -4,6 +4,9 @@ import { Timestamp } from "firebase-admin/firestore";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 import { FOLDER_ORDER } from "@/lib/mail/constants";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const COLLECTION = "mailFolders";
 
 async function assertAccountOwner(accountId: string, uid: string) {

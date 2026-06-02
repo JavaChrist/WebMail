@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createTransport } from "nodemailer";
 
 export const runtime = "nodejs"; // Forcer l'utilisation de Node.js au lieu de Edge
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {

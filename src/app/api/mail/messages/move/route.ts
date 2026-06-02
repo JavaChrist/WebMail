@@ -3,6 +3,9 @@ import { adminDb } from "@/config/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const { uid } = await verifyRequest(request);

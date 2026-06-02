@@ -4,6 +4,8 @@ import { decryptPassword } from "@/lib/mail/crypto";
 import { fetchAttachment } from "@/lib/mail/attachmentService";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 function contentDisposition(

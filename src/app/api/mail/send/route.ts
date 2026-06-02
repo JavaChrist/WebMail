@@ -7,6 +7,8 @@ import { decryptPassword } from "@/lib/mail/crypto";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 import { appendToMailbox } from "@/lib/mail/imapAppend";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 /** Limite de taille cumulée des pièces jointes (~20 Mo de binaire). */

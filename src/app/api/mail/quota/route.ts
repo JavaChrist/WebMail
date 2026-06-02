@@ -4,6 +4,8 @@ import { Timestamp } from "firebase-admin/firestore";
 import { getAccountQuota } from "@/lib/mail/quotaService";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** Payload « quota indisponible » (toujours renvoyé en 200 pour ne pas casser l'UI). */
