@@ -9,6 +9,7 @@ import {
   deleteDoc,
   doc,
   writeBatch,
+  arrayUnion,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/config/firebase";
@@ -61,7 +62,21 @@ function mapAccount(id: string, data: Record<string, unknown>): MailAccount {
         ? (data.quotaTotalMb as number)
         : null,
     quotaCheckedAt: data.quotaCheckedAt ? toDate(data.quotaCheckedAt) : null,
+    blockedSenders: Array.isArray(data.blockedSenders)
+      ? (data.blockedSenders as string[])
+      : [],
   };
+}
+
+/** Ajoute une adresse à la liste des expéditeurs bloqués du compte (scoping strict). */
+export async function addBlockedSender(
+  accountId: string,
+  email: string
+): Promise<void> {
+  await updateDoc(doc(db, COLLECTION, accountId), {
+    blockedSenders: arrayUnion(email.trim().toLowerCase()),
+    updatedAt: Timestamp.now(),
+  });
 }
 
 export async function getAccountsByUser(

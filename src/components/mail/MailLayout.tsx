@@ -26,7 +26,7 @@ export default function MailLayout() {
 
   return (
     <div
-      className={`flex flex-col h-screen w-full overflow-hidden ${
+      className={`flex flex-col h-[100dvh] w-full overflow-hidden ${
         isDarkMode ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"
       }`}
     >

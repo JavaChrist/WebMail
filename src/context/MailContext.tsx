@@ -25,6 +25,7 @@ import {
   saveDraft as saveDraftService,
   deleteMessagePermanently,
 } from "@/lib/mail/messageService";
+import { addBlockedSender } from "@/lib/mail/accountService";
 
 const AUTO_SYNC_MS = 5 * 60 * 1000;
 
@@ -80,6 +81,7 @@ interface MailContextValue {
   archiveMessage: (message: MailMessage) => Promise<void>;
   trashMessage: (message: MailMessage) => Promise<void>;
   spamMessage: (message: MailMessage) => Promise<void>;
+  blockSender: (message: MailMessage) => Promise<void>;
   emptyTrash: () => Promise<void>;
   countFolderMessages: (folderId: string) => Promise<number>;
 
@@ -261,6 +263,23 @@ export function MailProvider({ children }: { children: React.ReactNode }) {
   const spamMessage = useCallback(
     (message: MailMessage) => moveToType(message, "spam", "Spam"),
     [moveToType]
+  );
+
+  const blockSender = useCallback(
+    async (message: MailMessage) => {
+      const email = message.from?.email?.trim();
+      await moveToType(message, "spam", "Spam");
+      if (email) {
+        try {
+          await addBlockedSender(message.accountId, email);
+          await accountsApi.reload();
+          showToast(`Expéditeur bloqué : ${email}`);
+        } catch {
+          showToast("Le message a été déplacé en spam (blocage non enregistré)", "error");
+        }
+      }
+    },
+    [moveToType, accountsApi, showToast]
   );
 
   const countFolderMessages = useCallback(
@@ -491,6 +510,7 @@ export function MailProvider({ children }: { children: React.ReactNode }) {
       archiveMessage,
       trashMessage,
       spamMessage,
+      blockSender,
       emptyTrash,
       countFolderMessages,
 
@@ -536,6 +556,7 @@ export function MailProvider({ children }: { children: React.ReactNode }) {
       archiveMessage,
       trashMessage,
       spamMessage,
+      blockSender,
       emptyTrash,
       countFolderMessages,
       composeApi,

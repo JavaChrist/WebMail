@@ -1,34 +1,50 @@
-"use client";
-
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import { ThemeProvider } from "@/context/ThemeContext";
-import { usePathname } from "next/navigation";
+import type { Metadata, Viewport } from "next";
+import AppShell from "./AppShell";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "WebMail",
+  description: "Messagerie moderne",
+  applicationName: "WebMail",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "WebMail",
+  },
+  icons: {
+    icon: [
+      { url: "/icone/logo16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icone/logo32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icone/logo48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icone/logo96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icone/logo192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/icone/logo32.png",
+    apple: "/icone/apple-touch-icon.png",
+  },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0f172a",
+};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isFullScreen = pathname === "/email";
-
   return (
     <html lang="fr">
       <body className={inter.className}>
-        <ThemeProvider>
-          {isFullScreen ? (
-            <main className="min-h-screen">{children}</main>
-          ) : (
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <main className="flex-1 lg:ml-64">{children}</main>
-            </div>
-          )}
-        </ThemeProvider>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

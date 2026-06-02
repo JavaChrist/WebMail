@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Paperclip,
   RefreshCw,
@@ -17,6 +17,11 @@ import {
   Archive,
   ShieldAlert,
   Trash2,
+  FolderInput,
+  Printer,
+  FileDown,
+  Code,
+  Ban,
 } from "lucide-react";
 import { format, isToday, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -24,6 +29,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { useMail } from "@/context/MailContext";
 import type { MailMessage } from "@/types/mail";
 import MailActionBar from "./MailActionBar";
+import PortalMenu, { MenuItem, MenuLabel, MenuSeparator } from "./PortalMenu";
+import MailSourceModal from "./MailSourceModal";
+import MailConfirmModal from "./MailConfirmModal";
+import { downloadEml, printMessage } from "@/lib/mail/messageExport";
 
 function formatDate(date: Date): string {
   if (isToday(date)) return format(date, "HH:mm", { locale: fr });
@@ -57,11 +66,16 @@ export default function MailMessageList() {
     setViewMode,
     markRead,
     openDraft,
+    blockSender,
   } = useMail();
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [moveOpen, setMoveOpen] = useState(false);
   const [layoutOpen, setLayoutOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [sourceMsg, setSourceMsg] = useState<MailMessage | null>(null);
+  const [blockTarget, setBlockTarget] = useState<MailMessage | null>(null);
+  const moreAnchorRef = useRef<HTMLElement | null>(null);
 
   const layoutOptions = [
     { mode: "list" as const, label: "Liste seule", icon: List },
@@ -97,9 +111,17 @@ export default function MailMessageList() {
     setChecked(new Set());
   };
 
+  // Cible UNIQUE = exactement une cible (un seul coché, ou le message ouvert
+  // si rien n'est coché). `targets` vaut déjà [selectedMessage] dans ce 2e cas.
+  const single: MailMessage | null =
+    targets.length === 1 ? targets[0] : null;
+
+  const multiHint = "Sélectionnez ou ouvrez un message";
+  const monoHint = "Sélectionnez ou ouvrez un seul message";
+
   const buildReply = (mode: "reply" | "replyAll" | "forward") => {
-    if (!selectedMessage) return;
-    const m = selectedMessage;
+    if (!single) return;
+    const m = single;
     const quoted = `\n\n------ ${
       mode === "forward" ? "Message transféré" : "Message original"
     } ------\nDe: ${addressLabel(m.from)}\nDate: ${format(
@@ -145,8 +167,8 @@ export default function MailMessageList() {
       <div className="relative">
         <MailActionBar
           hasTarget={targets.length > 0}
-          hasSingle={!!selectedMessage}
-          flagged={selectedMessage?.starred}
+          hasSingle={!!single}
+          flagged={single?.starred}
           onAssistant={() =>
             showToast(
               "Assistant IA disponible à l'ouverture d'un message (Traduire) et dans la rédaction (Corriger/Reformuler/Traduire)"
@@ -160,7 +182,11 @@ export default function MailMessageList() {
           onForward={() => buildReply("forward")}
           onFlag={() => runOnTargets((m) => toggleStar(m))}
           onMove={() => setMoveOpen((v) => !v)}
-          onMore={() => showToast("Plus d'actions bientôt disponibles")}
+          onMore={(e) => {
+            moreAnchorRef.current = e.currentTarget;
+            setMoreOpen(true);
+          }}
+          selectedCount={checked.size}
         />
         {moveOpen && (
           <>
@@ -480,7 +506,7 @@ export default function MailMessageList() {
 
       {/* Footer : dernière mise à jour */}
       <div
-        className={`flex items-center justify-center gap-2 px-4 py-1.5 border-t text-xs flex-shrink-0 ${
+        className={`flex items-center justify-center gap-2 px-4 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] border-t text-xs flex-shrink-0 ${
           isDarkMode ? "border-gray-800 text-gray-500" : "border-gray-200 text-gray-400"
         }`}
       >
@@ -498,6 +524,136 @@ export default function MailMessageList() {
             : "Actualiser"}
         </button>
       </div>
+
+      {/* Menu « Plus d'actions » (portail, non coupé) */}
+      <PortalMenu
+        open={moreOpen}
+        anchorRef={moreAnchorRef}
+        onClose={() => setMoreOpen(false)}
+      >
+        <MenuLabel>
+          {checked.size > 0
+            ? `${checked.size} message(s) sélectionné(s)`
+            : "Actions"}
+        </MenuLabel>
+        <MenuItem
+          disabled={targets.length === 0}
+          title={targets.length === 0 ? multiHint : undefined}
+          icon={<MailOpen size={16} />}
+          onClick={() => {
+            runOnTargets((m) => markRead(m, true));
+            setMoreOpen(false);
+          }}
+        >
+          Marquer comme lu
+        </MenuItem>
+        <MenuItem
+          disabled={targets.length === 0}
+          title={targets.length === 0 ? multiHint : undefined}
+          icon={<Mail size={16} />}
+          onClick={() => {
+            runOnTargets((m) => markRead(m, false));
+            setMoreOpen(false);
+          }}
+        >
+          Marquer comme non lu
+        </MenuItem>
+        <MenuItem
+          disabled={targets.length === 0}
+          title={targets.length === 0 ? multiHint : undefined}
+          icon={<Star size={16} />}
+          onClick={() => {
+            runOnTargets((m) => toggleStar(m));
+            setMoreOpen(false);
+          }}
+        >
+          Favori (étoile)
+        </MenuItem>
+        <MenuItem
+          disabled={targets.length === 0}
+          title={targets.length === 0 ? multiHint : undefined}
+          icon={<FolderInput size={16} />}
+          onClick={() => {
+            setMoreOpen(false);
+            setMoveOpen(true);
+          }}
+        >
+          Déplacer vers…
+        </MenuItem>
+
+        <MenuSeparator />
+
+        <MenuItem
+          disabled={!single}
+          title={!single ? monoHint : undefined}
+          icon={<Printer size={16} />}
+          onClick={() => {
+            if (single) printMessage(single);
+            setMoreOpen(false);
+          }}
+        >
+          Imprimer
+        </MenuItem>
+        <MenuItem
+          disabled={!single}
+          title={!single ? monoHint : undefined}
+          icon={<FileDown size={16} />}
+          onClick={() => {
+            if (single) downloadEml(single);
+            setMoreOpen(false);
+          }}
+        >
+          Télécharger (.eml)
+        </MenuItem>
+        <MenuItem
+          disabled={!single}
+          title={!single ? monoHint : undefined}
+          icon={<Code size={16} />}
+          onClick={() => {
+            setSourceMsg(single);
+            setMoreOpen(false);
+          }}
+        >
+          Afficher la source
+        </MenuItem>
+
+        <MenuSeparator />
+
+        <MenuItem
+          danger
+          disabled={!single}
+          title={!single ? monoHint : undefined}
+          icon={<Ban size={16} />}
+          onClick={() => {
+            setBlockTarget(single);
+            setMoreOpen(false);
+          }}
+        >
+          Bloquer l&apos;expéditeur
+        </MenuItem>
+      </PortalMenu>
+
+      <MailSourceModal message={sourceMsg} onClose={() => setSourceMsg(null)} />
+
+      <MailConfirmModal
+        isOpen={!!blockTarget}
+        title="Bloquer l'expéditeur"
+        destructive
+        confirmLabel="Bloquer et signaler"
+        message={
+          blockTarget
+            ? `Bloquer « ${
+                blockTarget.from.email || "cet expéditeur"
+              } » ? Ce message sera déplacé dans le Spam et l'adresse sera ajoutée à votre liste d'expéditeurs bloqués.`
+            : ""
+        }
+        onCancel={() => setBlockTarget(null)}
+        onConfirm={async () => {
+          const m = blockTarget;
+          setBlockTarget(null);
+          if (m) await blockSender(m);
+        }}
+      />
     </div>
   );
 }

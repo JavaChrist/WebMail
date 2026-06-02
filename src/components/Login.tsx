@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 import { auth } from "@/config/firebase";
 
 export default function Login() {
@@ -145,6 +146,15 @@ export default function Login() {
 
   return (
     <div className="w-full max-w-md bg-gray-900 text-white p-8 rounded-lg shadow-lg">
+      <div className="flex justify-center mb-4">
+        <Image
+          src="/icone/logo192.png"
+          alt="WebMail"
+          width={96}
+          height={96}
+          priority
+        />
+      </div>
       <h1 className="text-3xl font-bold mb-6 text-center">Connexion</h1>
       <form onSubmit={handleLogin} className="flex flex-col space-y-4">
         <input

@@ -311,9 +311,9 @@ export default function MailComposeModal() {
   return (
     <Dialog open={isComposeOpen} onClose={handleClose} className="relative z-[100]">
       <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4 max-sm:p-0">
         <Dialog.Panel
-          className={`w-full max-w-3xl h-[85vh] flex flex-col rounded-xl shadow-2xl ${
+          className={`w-full max-w-3xl h-[85vh] flex flex-col rounded-xl shadow-2xl max-sm:max-w-none max-sm:h-[100dvh] max-sm:rounded-none max-sm:pt-safe ${
             isDarkMode ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"
           }`}
         >
@@ -659,7 +659,7 @@ export default function MailComposeModal() {
           </div>
 
           <div
-            className={`flex items-center justify-end gap-2 px-4 py-3 border-t ${
+            className={`flex flex-wrap items-center justify-end gap-2 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] border-t ${
               isDarkMode ? "border-gray-800" : "border-gray-200"
             }`}
           >

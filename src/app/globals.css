@@ -21,6 +21,31 @@ body {
   background: rgb(var(--background-start-rgb));
 }
 
+/* Évite tout scroll horizontal global (mobile) */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Safe areas (iPhone : Dynamic Island, home indicator) — viewport-fit=cover requis */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+/* Marge basse au moins égale au home indicator (utile pour barres d'actions/compose) */
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
 /* Styles pour les animations de transition */
 .transition-all {
   transition-property: all;

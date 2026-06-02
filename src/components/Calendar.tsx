@@ -173,7 +173,13 @@ const AgendaEventComponent = ({ event }: { event: CalendarEvent }) => {
 
 export default function MyCalendar() {
   const { isDarkMode } = useTheme();
-  const [view, setView] = useState<View>(Views.WEEK);
+  // Sur mobile, on ouvre en vue Agenda (fitte la largeur, liste lisible) ;
+  // sur desktop/tablette, vue Semaine.
+  const [view, setView] = useState<View>(() =>
+    typeof window !== "undefined" && window.innerWidth < 768
+      ? Views.AGENDA
+      : Views.WEEK
+  );
   const [date, setDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

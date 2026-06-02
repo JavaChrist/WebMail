@@ -463,3 +463,166 @@
 .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
   background-color: rgba(55, 65, 81, 0.7);
 }
+
+/* ============================================================
+   CORRECTIFS — Vue MOIS (clair + sombre), Agenda, Toolbar, Mobile
+   (placés en fin de fichier pour gagner en spécificité d'ordre)
+   ============================================================ */
+
+/* La grille du mois doit remplir la hauteur disponible et NE PAS s'effondrer */
+.rbc-month-view {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* ---- Vue MOIS — thème CLAIR ---- */
+.rbc-month-view {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.rbc-month-view .rbc-month-row {
+  border-top: 1px solid #e5e7eb;
+}
+.rbc-month-view .rbc-day-bg {
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+}
+.rbc-month-view .rbc-date-cell {
+  color: #1f2937;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+}
+.rbc-month-view .rbc-off-range-bg {
+  background-color: #f9fafb;
+}
+.rbc-month-view .rbc-off-range {
+  color: #9ca3af;
+}
+.rbc-month-view .rbc-show-more {
+  color: #2563eb;
+  background: transparent;
+}
+
+/* ---- Vue MOIS — thème SOMBRE (corrige la grille « noire ») ---- */
+.dark .rbc-month-view {
+  background-color: #1f2937;
+  border-color: rgba(75, 85, 99, 0.4);
+}
+.dark .rbc-month-view .rbc-month-row {
+  border-top: 1px solid rgba(75, 85, 99, 0.35);
+}
+.dark .rbc-month-view .rbc-day-bg {
+  background-color: #1f2937;
+  border-left: 1px solid rgba(75, 85, 99, 0.3);
+}
+.dark .rbc-month-view .rbc-date-cell {
+  color: #e5e7eb;
+}
+.dark .rbc-month-view .rbc-off-range-bg {
+  background-color: #111827;
+}
+.dark .rbc-month-view .rbc-off-range {
+  color: #6b7280;
+}
+.dark .rbc-month-view .rbc-show-more {
+  color: #93c5fd;
+  background: transparent;
+}
+
+/* ---- Vue SEMAINE / JOUR — contraste des bordures (sombre) ---- */
+.rbc-time-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+.dark .rbc-time-view {
+  border-color: rgba(75, 85, 99, 0.4);
+}
+.dark .rbc-time-header,
+.dark .rbc-time-header-content,
+.dark .rbc-time-header.rbc-overflowing {
+  border-color: rgba(75, 85, 99, 0.4) !important;
+}
+.dark .rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid rgba(75, 85, 99, 0.15);
+}
+
+/* ---- Vue AGENDA — conteneur + lignes (clair + sombre) ---- */
+.rbc-agenda-view {
+  background-color: #ffffff;
+  color: #1f2937;
+  overflow: auto;
+}
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-top: 1px solid #e5e7eb;
+  padding: 6px 10px;
+}
+.dark .rbc-agenda-view {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+.dark .rbc-agenda-view table.rbc-agenda-table {
+  border: 1px solid rgba(75, 85, 99, 0.4);
+}
+.dark .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-top: 1px solid rgba(75, 85, 99, 0.3);
+}
+.dark .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+}
+/* Message « aucun événement » lisible dans les deux thèmes */
+.rbc-agenda-empty {
+  padding: 1rem;
+  color: #6b7280;
+}
+.dark .rbc-agenda-empty {
+  color: #9ca3af;
+}
+
+/* ---- Barre d'outils : passe à la ligne au lieu de déborder ---- */
+.rbc-toolbar {
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.rbc-toolbar .rbc-btn-group {
+  white-space: nowrap;
+}
+
+/* ---- Hauteur de la zone horaire (sous AppTopBar), iOS dvh ---- */
+.rbc-time-content {
+  height: calc(100dvh - 220px);
+  min-height: 320px;
+}
+
+/* ---- Mobile (priorité iPhone) ---- */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .rbc-toolbar .rbc-toolbar-label {
+    order: -1;
+    text-align: center;
+    font-weight: 600;
+  }
+  .rbc-toolbar .rbc-btn-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .rbc-month-view .rbc-date-cell {
+    font-size: 0.7rem;
+    padding: 2px 3px;
+  }
+  .rbc-time-content {
+    height: calc(100dvh - 240px);
+    min-height: 280px;
+  }
+  /* L'agenda (vue par défaut sur mobile) tient sur la largeur sans scroll horizontal */
+  .rbc-agenda-view {
+    min-width: 0 !important;
+  }
+}

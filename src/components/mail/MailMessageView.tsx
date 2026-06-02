@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Star,
   Archive,
@@ -9,6 +9,7 @@ import {
   Reply,
   Forward,
   Mail,
+  MailOpen,
   Paperclip,
   ArrowLeft,
   Download,
@@ -16,6 +17,12 @@ import {
   Loader2,
   Languages,
   X,
+  MoreHorizontal,
+  Printer,
+  FileDown,
+  Code,
+  Ban,
+  FolderInput,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -23,6 +30,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { useMail } from "@/context/MailContext";
 import { auth } from "@/config/firebase";
 import type { MailAttachment, MailMessage } from "@/types/mail";
+import PortalMenu, { MenuItem, MenuLabel, MenuSeparator } from "./PortalMenu";
+import MailSourceModal from "./MailSourceModal";
+import MailConfirmModal from "./MailConfirmModal";
+import { downloadEml, printMessage } from "@/lib/mail/messageExport";
 
 function addressLabel(addr: { email: string; name?: string }): string {
   return addr.name ? `${addr.name} <${addr.email}>` : addr.email;
@@ -67,11 +78,19 @@ export default function MailMessageView() {
     viewMode,
     searchActive,
     showToast,
+    markRead,
+    moveToFolder,
+    folders,
+    blockSender,
   } = useMail();
 
   const [loadingAtt, setLoadingAtt] = useState<Set<number>>(new Set());
   const [translating, setTranslating] = useState(false);
   const [translation, setTranslation] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const moreAnchorRef = useRef<HTMLButtonElement | null>(null);
 
   // Réinitialise la traduction quand on change de message.
   useEffect(() => {
@@ -273,6 +292,17 @@ export default function MailMessageView() {
         <div className="flex-1" />
         {actionBtn(() => buildReply(false), "Répondre", <Reply size={18} />)}
         {actionBtn(() => buildReply(true), "Transférer", <Forward size={18} />)}
+        <button
+          ref={moreAnchorRef}
+          type="button"
+          title="Plus d'actions"
+          onClick={() => setMoreOpen(true)}
+          className={`p-2 rounded-lg transition-colors ${
+            isDarkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+          }`}
+        >
+          <MoreHorizontal size={18} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -417,6 +447,102 @@ export default function MailMessageView() {
           )}
         </div>
       </div>
+
+      {/* Menu « Plus d'actions » (portail) */}
+      <PortalMenu
+        open={moreOpen}
+        anchorRef={moreAnchorRef}
+        onClose={() => setMoreOpen(false)}
+      >
+        <MenuItem
+          icon={message.read ? <Mail size={16} /> : <MailOpen size={16} />}
+          onClick={() => {
+            markRead(message, !message.read);
+            setMoreOpen(false);
+          }}
+        >
+          {message.read ? "Marquer comme non lu" : "Marquer comme lu"}
+        </MenuItem>
+
+        <MenuSeparator />
+        <MenuLabel>Déplacer vers…</MenuLabel>
+        {folders
+          .filter((f) => f.id !== message.primaryFolderId)
+          .map((f) => (
+            <MenuItem
+              key={f.id}
+              icon={<FolderInput size={16} />}
+              onClick={() => {
+                setMoreOpen(false);
+                moveToFolder(message, f.id);
+                showToast(`Déplacé vers ${f.name}`);
+              }}
+            >
+              {f.name}
+            </MenuItem>
+          ))}
+
+        <MenuSeparator />
+        <MenuItem
+          icon={<Printer size={16} />}
+          onClick={() => {
+            printMessage(message);
+            setMoreOpen(false);
+          }}
+        >
+          Imprimer
+        </MenuItem>
+        <MenuItem
+          icon={<FileDown size={16} />}
+          onClick={() => {
+            downloadEml(message);
+            setMoreOpen(false);
+          }}
+        >
+          Télécharger (.eml)
+        </MenuItem>
+        <MenuItem
+          icon={<Code size={16} />}
+          onClick={() => {
+            setSourceOpen(true);
+            setMoreOpen(false);
+          }}
+        >
+          Afficher la source
+        </MenuItem>
+
+        <MenuSeparator />
+        <MenuItem
+          danger
+          icon={<Ban size={16} />}
+          onClick={() => {
+            setBlockOpen(true);
+            setMoreOpen(false);
+          }}
+        >
+          Bloquer l&apos;expéditeur
+        </MenuItem>
+      </PortalMenu>
+
+      <MailSourceModal
+        message={sourceOpen ? message : null}
+        onClose={() => setSourceOpen(false)}
+      />
+
+      <MailConfirmModal
+        isOpen={blockOpen}
+        title="Bloquer l'expéditeur"
+        destructive
+        confirmLabel="Bloquer et signaler"
+        message={`Bloquer « ${
+          message.from.email || "cet expéditeur"
+        } » ? Ce message sera déplacé dans le Spam et l'adresse sera ajoutée à votre liste d'expéditeurs bloqués.`}
+        onCancel={() => setBlockOpen(false)}
+        onConfirm={async () => {
+          setBlockOpen(false);
+          await blockSender(message);
+        }}
+      />
     </div>
   );
 }

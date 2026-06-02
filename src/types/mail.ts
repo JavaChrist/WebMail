@@ -65,6 +65,8 @@ export interface MailAccount {
   quotaUsedMb?: number | null;
   quotaTotalMb?: number | null;
   quotaCheckedAt?: Date | null;
+  /** Adresses expéditrices bloquées (futurs e-mails dirigés vers le spam). */
+  blockedSenders?: string[];
 }
 
 export interface MailFolder {
