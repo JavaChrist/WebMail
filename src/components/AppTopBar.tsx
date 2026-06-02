@@ -14,7 +14,7 @@ export default function AppTopBar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 flex items-center gap-2 h-14 px-2 sm:px-4 pt-safe border-b flex-shrink-0 ${
+      className={`sticky top-0 z-40 flex items-center gap-2 min-h-[3.5rem] px-2 sm:px-4 pt-safe border-b flex-shrink-0 ${
         isDarkMode
           ? "bg-gray-900 border-gray-800 text-gray-100"
           : "bg-white border-gray-200 text-gray-900"

@@ -51,7 +51,7 @@ export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
 
   return (
     <header
-      className={`flex items-center gap-1 sm:gap-2 h-14 px-2 sm:px-3 pt-safe border-b flex-shrink-0 ${
+      className={`flex items-center gap-1 sm:gap-2 min-h-[3.5rem] px-2 sm:px-3 pt-safe border-b flex-shrink-0 ${
         isDarkMode
           ? "bg-gray-900 border-gray-800 text-gray-100"
           : "bg-white border-gray-200 text-gray-900"

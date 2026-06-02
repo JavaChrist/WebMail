@@ -626,3 +626,42 @@
     min-width: 0 !important;
   }
 }
+
+/* ============================================================
+   CORRECTIF ALIGNEMENT — en-têtes vs grille (Mois) et colonnes (Semaine)
+   On NE force plus de largeurs minimales : on laisse react-big-calendar
+   répartir nativement les 7 colonnes sur 100% de la largeur, ce qui aligne
+   parfaitement les en-têtes (dim/lun/…) avec les cellules et garantit que
+   TOUS les jours de la semaine sont visibles.
+   ============================================================ */
+.rbc-header {
+  min-width: 0 !important;
+}
+.rbc-time-view {
+  min-width: 0 !important;
+}
+.rbc-time-column {
+  min-width: 0 !important;
+}
+/* La zone horaire ne défile QUE verticalement (le défilement horizontal
+   décorrélait l'en-tête du contenu → colonnes coupées). */
+.rbc-time-content {
+  overflow-x: hidden !important;
+}
+/* Le calendrier remplit la largeur de son conteneur (pas de débordement
+   horizontal qui couperait des colonnes). */
+.rbc-calendar {
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 768px) {
+  /* Confort minimal des colonnes/heures sur mobile (tout reste visible) */
+  .rbc-time-view {
+    min-width: 0 !important;
+  }
+  .rbc-time-gutter,
+  .rbc-time-gutter .rbc-timeslot-group {
+    font-size: 0.65rem;
+  }
+}

@@ -15,6 +15,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "WebMail",
   },
+  other: {
+    // Balise standard (remplace l'avertissement de dépréciation apple-mobile-web-app-capable)
+    "mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: [
       { url: "/icone/logo16.png", sizes: "16x16", type: "image/png" },
