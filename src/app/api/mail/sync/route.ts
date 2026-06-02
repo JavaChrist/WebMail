@@ -3,7 +3,12 @@ import { adminDb } from "@/config/firebase-admin";
 import { syncAccount } from "@/lib/mail/syncService";
 import { verifyRequest, AuthError } from "@/lib/mail/apiAuth";
 
-export const maxDuration = 300;
+// IMAP (sockets TCP via `net`) nécessite le runtime Node — PAS edge.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+// Durée max de la fonction serverless. 60 s convient au plan Pro ; sur Hobby la
+// limite réelle est ~10 s → voir la note plus bas si la sync échoue toujours.
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -36,10 +41,10 @@ export async function POST(request: Request) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    console.error("Erreur de synchronisation:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur inconnue" },
-      { status: 500 }
-    );
+    // Message réel (sans mot de passe) pour le toast client + les logs Vercel.
+    const message =
+      error instanceof Error ? error.message : "Erreur de synchronisation";
+    console.error("Erreur de synchronisation /api/mail/sync:", message);
+    return NextResponse.json({ error: message }, { status: 502 });
   }
 }

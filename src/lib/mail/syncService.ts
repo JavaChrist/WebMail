@@ -16,7 +16,11 @@ const FOLDERS = "mailFolders";
 const MESSAGES = "mailMessages";
 
 /** Nombre maximum de messages récupérés par dossier et par passe de synchro. */
-const PER_FOLDER_LIMIT = 100;
+const PER_FOLDER_LIMIT = 60;
+/** Nombre maximum de dossiers traités par passe (tient dans la fenêtre serverless). */
+const MAX_FOLDERS_PER_SYNC = 8;
+/** Timeout global de la passe de synchro (< maxDuration Vercel de 60 s). */
+const SYNC_TIMEOUT_MS = 50000;
 
 /**
  * Firestore limite chaque champ (et document) à ~1 Mio. On borne le contenu
@@ -148,8 +152,9 @@ function createImap(account: AccountData, password: string): Imap {
       servername: account.imapServer,
       minVersion: "TLSv1.2",
     },
-    connTimeout: 60000,
-    authTimeout: 60000,
+    // Échouer vite et proprement plutôt que de « pendre » jusqu'au kill Vercel.
+    connTimeout: 15000,
+    authTimeout: 15000,
   });
 }
 
@@ -452,8 +457,8 @@ export async function syncAccount(
       } catch {
         /* noop */
       }
-      reject(new Error("Timeout de la synchronisation IMAP"));
-    }, 290000);
+      reject(new Error("Délai de synchronisation IMAP dépassé"));
+    }, SYNC_TIMEOUT_MS);
 
     imap.once("ready", async () => {
       try {
@@ -473,7 +478,16 @@ export async function syncAccount(
         let totalSeen = 0;
         const now = Timestamp.now();
 
-        for (const [path, rec] of Array.from(recs)) {
+        // Priorité INBOX puis dossiers système, et bornage du nombre de dossiers
+        // par passe pour tenir dans la fenêtre serverless. La sync incrémentale
+        // (par UID) reprendra les dossiers restants au prochain appel.
+        const priority = (ft: FolderType) =>
+          ft === "inbox" ? 0 : ft !== "custom" ? 1 : 2;
+        const orderedRecs = Array.from(recs.entries())
+          .sort((a, b) => priority(a[1].folderType) - priority(b[1].folderType))
+          .slice(0, MAX_FOLDERS_PER_SYNC);
+
+        for (const [path, rec] of orderedRecs) {
           // eslint-disable-next-line no-await-in-loop
           const box = await openBoxP(imap, path, true);
           if (!box) continue;
