@@ -1,7 +1,7 @@
 /* Service worker minimal (PWA) — cache du shell + offline basique.
    N'intercepte JAMAIS /api/* ni les origines externes (Firebase, OpenAI/Anthropic…). */
-const CACHE = "webmail-shell-v4";
-const SHELL = ["/", "/icone/logo192.png", "/manifest.webmanifest"];
+const CACHE = "webmail-shell-v5";
+const SHELL = ["/", "/icone/app-icon.png", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

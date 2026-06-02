@@ -4,7 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, Home, Calendar, Mail, Users, Sun, Moon, LogOut } from "lucide-react";
+import {
+  Menu,
+  Home,
+  Calendar,
+  Mail,
+  Users,
+  Settings,
+  Sun,
+  Moon,
+  LogOut,
+} from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { auth } from "@/config/firebase";
 
@@ -138,6 +148,23 @@ export default function AppNavMenu({ className }: { className?: string }) {
                   </Link>
                 );
               })}
+
+              <Link
+                href="/email/accounts"
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-3 px-4 py-2 ${
+                  pathname?.startsWith("/email/accounts")
+                    ? isDarkMode
+                      ? "bg-blue-500/15 text-blue-300"
+                      : "bg-blue-50 text-blue-700"
+                    : isDarkMode
+                    ? "hover:bg-gray-700"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                <Settings size={18} />
+                <span className="flex-1">Comptes &amp; signatures</span>
+              </Link>
 
               <div
                 className={`my-1.5 border-t ${

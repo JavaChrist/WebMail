@@ -103,9 +103,9 @@ export default function MailAccountModal({
   }`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4 max-sm:p-0">
       <div
-        className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl p-6 ${
+        className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl p-6 max-sm:max-w-none max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:rounded-none max-sm:pt-safe max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))] ${
           isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
         }`}
       >
@@ -283,7 +283,7 @@ export default function MailAccountModal({
           </div>
 
           <div
-            className={`flex items-center justify-between gap-2 pt-3 mt-2 border-t ${
+            className={`flex flex-wrap items-center justify-between gap-2 pt-3 mt-2 border-t ${
               isDarkMode ? "border-gray-700" : "border-gray-200"
             }`}
           >

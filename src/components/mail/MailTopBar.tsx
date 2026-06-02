@@ -149,8 +149,8 @@ export default function MailTopBar({ onToggleSidebar }: MailTopBarProps) {
         </button>
         <Link
           href="/email/accounts"
-          title="Paramètres"
-          className={`hidden sm:inline-flex ${iconBtn}`}
+          title="Comptes & signatures"
+          className={iconBtn}
         >
           <Settings size={20} />
         </Link>
